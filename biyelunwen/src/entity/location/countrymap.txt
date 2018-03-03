@@ -1,0 +1,31 @@
+中国,中国,china,Republic of China,People's Republic of China,中國,beijing,shanghai,prc,chn,北京
+美国,usa,United States,us,U.S.A.,New York,nyc,U.S.,New York City
+俄罗斯,russia
+德国,germany
+英国,uk,United Kingdom,england,scotland,london
+法国,france,paris
+澳大利亚,australia
+日本,japan,tokyo
+加拿大,canada
+香港,Hong Kong
+新加坡,singapore
+瑞典,sweden
+西班牙,spain,españa,madrid,España
+意大利,italy,italia
+韩国,South Korea,korea,North Korea
+智利,chile
+越南,vietnam
+台湾,台灣,中華民國,taiwan,taipei
+印尼,indonesia
+丹麦,denmark
+阿根廷,argentina
+印度,india
+巴西,brazil
+爱尔兰,ireland
+墨西哥,México
+马来西亚,malaysia
+荷兰,amsterdam
+新西兰,New Zealand
+冰岛,iceland
+斯里兰卡,Sri Lanka
+未知,unknown

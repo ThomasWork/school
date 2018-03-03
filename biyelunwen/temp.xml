@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<rsp stat="ok"> 
+ <photo id="16335884083" secret="29ffe7d098" server="8732" farm="9" dateuploaded="1427557103" isfavorite="0" license="0" safety_level="0" rotation="0" originalsecret="ced2f50407" originalformat="jpg" views="38" media="photo"> 
+  <owner nsid="70236786@N00" username="<moss/>" realname="Moss Chuang" location="Taipei, Taiwan" iconserver="5634" iconfarm="6" path_alias="moss_chuang" /> 
+  <title></title> 
+  <description /> 
+  <visibility ispublic="1" isfriend="0" isfamily="0" /> 
+  <dates posted="1427557103" taken="2015-03-27 17:54:11" takengranularity="0" takenunknown="0" lastupdate="1427557108" /> 
+  <editability cancomment="0" canaddmeta="0" /> 
+  <publiceditability cancomment="1" canaddmeta="0" /> 
+  <usage candownload="1" canblog="0" canprint="0" canshare="1" /> 
+  <comments>
+   0
+  </comments> 
+  <notes /> 
+  <people haspeople="0" /> 
+  <tags /> 
+  <location latitude="40.054761" longitude="116.609275" accuracy="16" context="0" place_id="3fA71q1TUrjPgLV4Rw" woeid="20274297"> 
+   <locality place_id="3fA71q1TUrjPgLV4Rw" woeid="20274297">
+    Houshayu
+   </locality> 
+   <county place_id="EWXNyXZQULzHvD8L9Q" woeid="12686916">
+    Beijing
+   </county> 
+   <region place_id="efYrQKFQUL84fwdWXg" woeid="12578011">
+    Beijing
+   </region> 
+   <country place_id="MH3w3ENTUb45a2.GqA" woeid="23424781">
+    China
+   </country> 
+  </location> 
+  <geoperms ispublic="1" iscontact="0" isfriend="0" isfamily="0" /> 
+  <urls> 
+   <url type="photopage">
+    https://www.flickr.com/photos/moss_chuang/16335884083/
+   </url> 
+  </urls> 
+ </photo> 
+</rsp>
