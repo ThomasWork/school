@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rsp stat="ok">
+    <photo id="27058027829" secret="737e1ee73a" server="4524" farm="5" dateuploaded="1512407796" isfavorite="0" license="0" safety_level="0" rotation="0" originalsecret="264dbec90b" originalformat="jpg" views="31" media="photo">
+        <owner nsid="98489626@N02" username="awvdm8881" realname="Alexander" location="" iconserver="7408" iconfarm="8" path_alias="awvdm2013" />
+        <title>DSC23727</title>
+        <description>Beijing - Fenzhongsi Subway Station (Line 10, exit D) at Xiaohongmen Road </description>
+        <visibility ispublic="1" isfriend="0" isfamily="0" />
+        <dates posted="1512407796" taken="2017-10-28 09:55:26" takengranularity="0" takenunknown="0" lastupdate="1512407883" />
+        <editability cancomment="0" canaddmeta="0" />
+        <publiceditability cancomment="1" canaddmeta="0" />
+        <usage candownload="1" canblog="0" canprint="0" canshare="1" />
+        <comments>0</comments>
+        <notes />
+        <people haspeople="0" />
+        <tags>
+            <tag id="98469278-27058027829-7300" author="98489626@N02" authorname="awvdm8881" raw="Beijing" machine_tag="0">beijing</tag>
+            <tag id="98469278-27058027829-49" author="98489626@N02" authorname="awvdm8881" raw="China" machine_tag="0">china</tag>
+        </tags>
+        <location latitude="39.849277" longitude="116.447938" accuracy="16" context="0" place_id="vQ6vOjpTU7_QE6S8" woeid="2151330">
+            <locality place_id="vQ6vOjpTU7_QE6S8" woeid="2151330">Beijing</locality>
+            <county place_id="EWXNyXZQULzHvD8L9Q" woeid="12686916">Beijing</county>
+            <region place_id="efYrQKFQUL84fwdWXg" woeid="12578011">Beijing</region>
+            <country place_id="MH3w3ENTUb45a2.GqA" woeid="23424781">China</country>
+        </location>
+        <geoperms ispublic="1" iscontact="0" isfriend="0" isfamily="0" />
+        <urls>
+            <url type="photopage">https://www.flickr.com/photos/awvdm2013/27058027829/</url>
+        </urls>
+    </photo>
+</rsp>
