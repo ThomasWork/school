@@ -6,8 +6,11 @@
 	<classpathentry kind="lib" path="E:/MyProject/Eclipse2/JavaFlickrBeijing/src/myutil/jar/jsoup-1.8.1.jar"/>
 	<classpathentry kind="lib" path="E:/MyProject/Eclipse2/JavaFlickrBeijing/src/myutil/jar/fastjson-1.1.24.jar"/>
 	<classpathentry kind="lib" path="E:/MyProject/Eclipse2/JavaFlickrBeijing/src/myutil/jar/javacsv.jar"/>
-	<classpathentry kind="lib" path="E:/MyProject/Eclipse2/JavaFlickrBeijing/src/myutil/jar/httpclient4.3/httpclient-4.3.1.jar"/>
-	<classpathentry kind="lib" path="E:/MyProject/Eclipse2/JavaFlickrBeijing/src/myutil/jar/httpclient4.3/httpcore-4.3.jar"/>
 	<classpathentry kind="lib" path="E:/MyProject/Eclipse2/JavaFlickrBeijing/src/myutil/jar/httpclient4.3/commons-logging-1.1.3.jar"/>
+	<classpathentry kind="lib" path="G:/ASR/school/publicjar/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="G:/ASR/school/publicjar/scribe-1.3.7.jar"/>
+	<classpathentry kind="lib" path="G:/ASR/school/publicjar/dom4j-1.6.1.jar"/>
+	<classpathentry kind="lib" path="G:/ASR/school/publicjar/org.apache.httpclient_4.5.5.jar"/>
+	<classpathentry kind="lib" path="G:/ASR/school/publicjar/org.apache.httpcore_4.4.9.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

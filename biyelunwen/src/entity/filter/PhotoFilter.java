@@ -17,7 +17,7 @@ public abstract class PhotoFilter
 	protected PhotoFilter nextFilter;
 	
 	public PhotoFilter(){
-		this.nextFilter=null;
+		this.nextFilter = null;
 	}
 	
 	protected abstract boolean isValid(Photo p);
@@ -27,8 +27,8 @@ public abstract class PhotoFilter
 	}
 	
 	public boolean getValid(Photo p){
-		if(this.isValid(p)){//如果本过滤器通过
-			if(null==this.nextFilter)//如果没有后续判断
+		if(this.isValid(p)) {//如果本过滤器通过
+			if(null == this.nextFilter)//如果没有后续判断
 				return true;
 			else
 				return this.nextFilter.isValid(p);//进行后续判断
@@ -37,8 +37,8 @@ public abstract class PhotoFilter
 	}
 	
 	public static PhotoFilter getFilter(TimeType tt, GeoFilter.Area area){
-		PhotoFilter time=new TimeFilter(tt);
-		PhotoFilter geo=new GeoFilter(area);
+		PhotoFilter time = new TimeFilter(tt);
+		PhotoFilter geo = new GeoFilter(area);
 		geo.setNextFilter(time);
 	//	time.setNextFilter(geo);
 	//	return time;
@@ -51,7 +51,7 @@ public abstract class PhotoFilter
 	}
 	
 	public static List<Photo> getFilteredPhotos(PhotoFilter pf){
-		List<Photo> photos = Photo.getPhotos();
+		List<Photo> photos = Photo.getPhotos(Photo.photoBasicInfoPath);
 		return filterPhotos(photos, pf);
 	}
 	
@@ -67,7 +67,7 @@ public abstract class PhotoFilter
 	}
 	
 	public static void getPhotosTest1(){
-		TimeFilter.TimeType tt=new TimeFilter.HourFilter(20, 12);
+		TimeFilter.TimeType tt = new TimeFilter.HourFilter(20, 12);
 	//	tt=TimeFilter.allDay;
 		PhotoFilter pf=getFilter(tt, GeoFilter.areaGuGongNeiBu);
 		List<Photo> photos=getFilteredPhotos(pf);
@@ -75,7 +75,7 @@ public abstract class PhotoFilter
 	}
 	
 	public static void getPhotosTest(){
-		List<Photo> input=GeoFilter.getAreaPhotos(GeoFilter.areaGuGongNeiBu);
+		List<Photo> input = GeoFilter.getAreaPhotos(GeoFilter.areaGuGongNeiBu);
 	//	input=Photo.getPhotos();
 		System.out.println("size:"+input.size());
 		for(int i=23; i<24; ++i){

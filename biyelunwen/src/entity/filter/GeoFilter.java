@@ -10,12 +10,12 @@ import myutil.fileprocess.FileUtil;
 public class GeoFilter extends PhotoFilter
 {
 //	public static Area areaGuGong=new Area(116.3854198791183, 116.3959208474785, 39.92299482093005, 39.91183241605992);//故宫
-	public static Area areaBeijingLong=new Area("BeijingLong", 115.7, 117.4, 41.6, 39.4);
-	public static Area areaBeijing=new Area("Beijing", 115.4176797019845, 117.4, 40.82043373794893, 39.42893249067495);
-	public static Area areaBeijingNeibu=new Area("BeijingNeibu", 116.1736739010924, 116.6551342922234, 40.12973211355965, 39.78446940833266);
-	public static Area areaGuGongBig=new Area("GuGongBig", 116.3840, 116.3970, 39.9230, 39.9110);
-	public static Area areaGuGongNeiBu=new Area("GuGongNeiBu", 116.3866, 116.3950, 39.9208, 39.9126);
-	public static Area areaYiHeYuan=new Area("YiHeYuan", 116.2567640662166, 116.278013963262, 40.00338408656999, 39.9802376172739);//颐和园
+	public static Area areaBeijingLong = new Area("BeijingLong", 115.7, 117.4, 41.6, 39.4);
+	public static Area areaBeijing = new Area("Beijing", 115.406, 117.502, 41.044, 39.434);
+	public static Area areaBeijingNeibu = new Area("BeijingNeibu", 116.1736739010924, 116.6551342922234, 40.12973211355965, 39.78446940833266);
+	public static Area areaGuGongBig = new Area("GuGongBig", 116.3840, 116.3970, 39.9230, 39.9110);
+	public static Area areaGuGongNeiBu = new Area("GuGongNeiBu", 116.3866, 116.3950, 39.9208, 39.9126);
+	public static Area areaYiHeYuan = new Area("YiHeYuan", 116.2567640662166, 116.278013963262, 40.00338408656999, 39.9802376172739);//颐和园
 	
 	static{
 		areaBeijing.setClusterParameter(3000, 3000, 3, 20);
@@ -98,28 +98,12 @@ public class GeoFilter extends PhotoFilter
 		return photos;
 	}
 	
-	public static List<Photo> getAreaPhotos(Area a){
-		List<Photo> photos = Photo.getPhotos();
-		photos=getPhotosInArea(photos, a);
-		System.out.println("获取在"+a.name+"范围内的照片，数量为："+photos.size());
-		return photos;
-	}
-	
 	public static List<Photo> getPhotosInArea(List<Photo> photos, Area a){
 	//	System.out.println(a.left+","+a.right+","+a.top+","+a.bottom);
+		System.out.println("photo num: " + photos.size() + ", filter: " + a.name);
 		return GeoFilter.getPhotosInRect(photos, a.left, a.right, a.top, a.bottom);
 	}
 	
-	public static void getSpecificPhotos(Area a){
-		List<Photo> photos=getAreaPhotos(a);
-		List<String> content=new ArrayList<String>();
-		for(Photo p: photos)
-			content.add(p.id);
-		FileUtil.NewFile(Photo.workDir+"gugongphotoid.txt", content);
-		System.out.println(photos.size());
-	}
-	
 	public static void main(String[] args){
-		getSpecificPhotos(GeoFilter.areaGuGongNeiBu);
 	}
 }

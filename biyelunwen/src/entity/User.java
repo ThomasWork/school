@@ -29,7 +29,7 @@ import myutil.fileprocess.FileUtil;
 
 public class User
 {
-	public static String usersIdPath=Photo.workDir+"usersId.txt";
+	public static String usersIdPath=Photo.workDir + "users_id.txt";
 	public static String usersInfoPath=Photo.workDir+"userinfo.csv";
 	
 	public String id;
@@ -133,7 +133,7 @@ public class User
 	
 	//首先获得用户的信息，然后把照片添加到用户的照片列表中
 	public static List<User> getUsersWithPhotos(){
-		List<Photo> photos=Photo.getPhotos();
+		List<Photo> photos=Photo.getPhotos(Photo.photoBasicInfoPath);
 		return getUsersWithPhotos(photos);
 	}
 	
@@ -183,7 +183,7 @@ public class User
 	
 	//获得时间经过矫正的照片
 	private static List<Photo> getPhotosWithCorrectTimeOld(){
-		List<Photo> photos=Photo.getPhotos();
+		List<Photo> photos=Photo.getPhotos(Photo.photoBasicInfoPath);
 		List<User> users = User.setPhotoUsersAndGetUsers(photos);
 		photos.clear();
 		for(User u: users){
@@ -375,6 +375,16 @@ public class User
 		return result;
 	}
 	
+	public static void getUserIds() {
+		Set<String> uids = new HashSet<String>();
+		List<Photo> photos = Photo.getPhotos(Photo.photoBasicInfoPath);
+		for (int i = 0; i < photos.size(); i += 1) {
+			uids.add(photos.get(i).userId);
+		}
+		List<String> uidss = new ArrayList<String>(uids);
+		FileUtil.NewFile(Photo.beijingUserIDs, uidss);
+	}
+	
 	public static void main(String[] args)
 	{
 	//	test1();
@@ -387,7 +397,8 @@ public class User
 	//	writeWorldParData();
 	//	writeUserVisitBlockIndex();
 	//	writeUserEachTrajectoryVisitBlockIndex();
-		writeLocalUserEachTrajectoryVisitBlockIndex();
+	//	writeLocalUserEachTrajectoryVisitBlockIndex();
+		getUserIds();
 	}
 
 }

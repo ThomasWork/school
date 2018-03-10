@@ -84,8 +84,8 @@ public class PhotoStatistic
 	}
 	
 	//对北京按照月份进行统计
-	public static void beijingMonthly(){
-		Map<String, List<Integer>> placesIndex=ClusterResult.getInitPlaceIndex();
+/*	public static void beijingMonthly(){
+		Map<String, List<Integer>> placesIndex = ClusterResult.getInitPlaceIndex();
 		GeoFilter.Area area=GeoFilter.areaBeijing;		
 		double maxHourDis=24;
 	//	List<User> waiDiUsers=UserFilter.getTourists(2, maxHourDis);//获得外地游客
@@ -127,12 +127,12 @@ public class PhotoStatistic
 		}
 		FileUtil.NewFile("C:/Users/Admin/Desktop/图片地理位置/画图/12-轨迹-12个月景点变化/data.txt", content);
 		FileUtil.NewFile("C:/Users/Admin/Desktop/图片地理位置/画图/12-轨迹-12个月景点变化/names.txt", names);
-	}
+	}*/
 	
 	
 	
-	public static void getBeijing(){
-		List<Photo> photos=Photo.getPhotos();
+/*	public static void getBeijing(){
+		List<Photo> photos=Photo.getPhotos(Photo.photoBasicInfoPath);
 		GeoFilter.Area area=GeoFilter.areaGuGongNeiBu;
 		photos=GeoFilter.getAreaPhotos(area);
 		List<MyPoint> mps=Photo.getPoints(photos);
@@ -169,18 +169,22 @@ public class PhotoStatistic
 				System.out.println(p.id);
 			}
 		}
-		Map<String, Integer> hours=Photo.getDateFields(photos, DateUtil.DateField.hour);
+		Map<String, Integer> hours=Photo.countDateFields(photos, DateUtil.DateField.hour);
 		for(Map.Entry<String, Integer> entry: hours.entrySet()){
 			System.out.println(entry.getKey()+","+entry.getValue());
 		}
+	}*/
+	
+	/*************************     毕业论文             ***********************************/
+	public static void getTotalPhotos() {
+		List<Photo> beijing = Photo.getPhotosOfBeijing();
+		System.out.println("北京共有图片：" + beijing.size());
+		Photo.savePhotos(beijing, Photo.photoSelectedBasicInfoPath);
 	}
 	
 	public static void main(String[] args)
 	{
-	//	getBeijing();
-	//	beijingMonthly();
-		testGuGongTime();
-		System.out.println(DateUtil.sdf.format(DateUtil.getDate(1463640063)));
+		getTotalPhotos();
 	}
 
 }

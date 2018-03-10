@@ -7,7 +7,7 @@ import java.util.Date;
 
 public class DateUtil
 {
-	public static SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public static String sdfString = "yyyy-MM-dd HH:mm:ss";
 	public static SimpleDateFormat sdfDHM=new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	public static SimpleDateFormat sdfDay=new SimpleDateFormat("yyyy-MM-dd");
 	public static SimpleDateFormat sdfLeft=new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -31,39 +31,48 @@ public class DateUtil
 	}
 	
 	public static Date getDate(String str, SimpleDateFormat format){
-		Date d=null;
+		Date d = null;
 		try
 		{
-			d=format.parse(str);
+			d = format.parse(str);
 		} catch (ParseException e)
 		{
-			System.out.println("转换时间出错: "+str);
+			System.out.println("转换时间出错: " + str);
+			System.out.println(e);
 			System.exit(0);
 		}
 		return d;
 	}
 	
 	public static void show(Date date){
-		System.out.println(DateUtil.sdf.format(date));
+		SimpleDateFormat sdf=new SimpleDateFormat(sdfString);
+		System.out.println(sdf.format(date));
 	}
 	
-	public static String dateToString(Date date)
+	public static String getDateString(Date date)
 	{
 		if(null==date)
 			return "0";
-		return DateUtil.sdf.format(date);
+		SimpleDateFormat sdf=new SimpleDateFormat(sdfString);
+		return sdf.format(date);
 	}
 	
-	public static Date stringToDate(String dateStr)
+	public static String getNowString() {
+		SimpleDateFormat sdf = new SimpleDateFormat(sdfString);
+		return sdf.format(new Date());
+	}
+	
+	public static Date getDate(String dateStr)
 	{
 		Date date=null;
 		try
 		{
-			date=DateUtil.sdf.parse(dateStr);
+			SimpleDateFormat sdf=new SimpleDateFormat(sdfString);
+			date = sdf.parse(dateStr);
 		} 
 		catch (ParseException e)
 		{
-		//	e.printStackTrace();
+			e.printStackTrace();
 		}
 		return date;
 	}
@@ -166,20 +175,24 @@ public class DateUtil
 		case hour:
 			DateUtil.calendar.add(Calendar.HOUR, dis);
 			break;
+		case dayOfYear:
+			DateUtil.calendar.add(Calendar.DAY_OF_YEAR, dis);
+			break;
 			default:
-				System.out.println("时间 域 出错，程序退出");
+				System.out.println("时间 域出错，程序退出" + field);
 				System.exit(0);
 		}
 	    return DateUtil.calendar.getTime();
 	}
 	public static void dateUpdateTest(){
-		Date d=DateUtil.getDate("2011-10-31 20:45:30", DateUtil.sdf);
+		SimpleDateFormat sdf=new SimpleDateFormat(sdfString);
+		Date d=DateUtil.getDate("2011-10-31 20:45:30", sdf);
 		d=DateUtil.dateUpdate(d, DateUtil.DateField.year, -1);
-		System.out.println(DateUtil.sdf.format(d));
+		System.out.println(sdf.format(d));
 		d=DateUtil.dateUpdate(d, DateUtil.DateField.month, 3);
-		System.out.println(DateUtil.sdf.format(d));
+		System.out.println(sdf.format(d));
 		d=DateUtil.dateUpdate(d, DateUtil.DateField.hour, 4);
-		System.out.println(DateUtil.sdf.format(d));
+		System.out.println(sdf.format(d));
 	}
 	
 	public static void main(String[] args){

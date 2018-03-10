@@ -81,12 +81,12 @@ public class GeoBlock
 	}
 	
 	public static void setParameter(int row, int column){
-		GeoBlock.HEIGHT=GeoBlock.BOTTOM-GeoBlock.TOP;
-		GeoBlock.WIDTH=GeoBlock.RIGHT-GeoBlock.LEFT;
-		GeoBlock.ROW_NUM=row;
-		GeoBlock.COLUMN_NUM=column;
-		GeoBlock.ROW_HEIGHT=GeoBlock.HEIGHT/GeoBlock.ROW_NUM;
-		GeoBlock.COLUMN_WIDTH=GeoBlock.WIDTH/GeoBlock.COLUMN_NUM;
+		GeoBlock.HEIGHT = GeoBlock.BOTTOM-GeoBlock.TOP;
+		GeoBlock.WIDTH = GeoBlock.RIGHT-GeoBlock.LEFT;
+		GeoBlock.ROW_NUM = row;
+		GeoBlock.COLUMN_NUM = column;
+		GeoBlock.ROW_HEIGHT = GeoBlock.HEIGHT/GeoBlock.ROW_NUM;
+		GeoBlock.COLUMN_WIDTH = GeoBlock.WIDTH/GeoBlock.COLUMN_NUM;
 	//	System.out.println("WIDTH:"+GeoBlock.WIDTH+"\tHEIGHT"+GeoBlock.HEIGHT);
 	//	System.out.println("ROW:"+GeoBlock.ROW_NUM+"\tColumn:"+GeoBlock.COLUMN_NUM);
 	//	System.out.println("width:"+GeoBlock.COLUMN_WIDTH+"\theight:"+GeoBlock.ROW_HEIGHT);
@@ -109,7 +109,7 @@ public class GeoBlock
 	
 	//根据数据点来设置栅格的参数
 	public static void setStaticParameter(List<MyPoint> points, int row, int column){
-		MyPoint first=points.get(0);
+		MyPoint first = points.get(0);
 		GeoBlock.LEFT=first.x;
 		GeoBlock.RIGHT=first.x;
 		GeoBlock.TOP=first.y;
@@ -131,7 +131,7 @@ public class GeoBlock
 	//根据数据点以及制定的行数和列数来获得栅格
 	public static List<GeoBlock> getBlock(List<MyPoint> points, int row, int column){			
 		
-		List<String> tempList=GeoBlock.getBlockIndexes(points, row, column);
+		List<String> tempList = GeoBlock.getBlockIndexes(points, row, column);
 		List<GeoBlock> blocks=new ArrayList<GeoBlock>();
 		
 	/*	Map<String, Integer> blockmap=StringUtil.countFrequency(tempList);//这里是使用计数的方式来统计栅格的权重
@@ -145,14 +145,14 @@ public class GeoBlock
 		}*/
 		
 		Map<String, Set<String>> blockWeight=new HashMap<String, Set<String>>();
-		for(int i=0; i<points.size(); ++i){
+		for(int i = 0; i < points.size(); ++i){
 			MyPoint mp=points.get(i);
 			Set<String> t=blockWeight.get(mp.geoBlockIndexString);
-			if(null==t){
+			if(null==t) {
 				t=new HashSet<String>();
 				blockWeight.put(mp.geoBlockIndexString, t);
 			}
-			t.add(mp.userId);			
+			t.add(mp.userId);
 		}
 		for(Map.Entry<String, Set<String>> entry: blockWeight.entrySet()){
 			GeoBlock tb=new GeoBlock(entry, ",");

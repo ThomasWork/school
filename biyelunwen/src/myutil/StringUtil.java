@@ -197,7 +197,16 @@ public class StringUtil
 	        }
 	    }
 	    return sb.toString();  
-	}  
+	}
+	
+	public static String listToString(List<String> list, String separator) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < list.size(); i++) {
+			sb.append(list.get(i)).append(separator);
+		}
+		return sb.toString();
+	}
+
 	
 	public static void main(String[] args){
 	//	testMergeLine();

@@ -9,11 +9,11 @@ import entity.Photo;
 
 public class TimeFilter extends PhotoFilter
 {
-	public static TimeType allDay=new HourFilter(0, 23);
+	public static TimeType allDay = new HourFilter(0, 23);
 	public TimeType realFilter;
 
 	public TimeFilter(TimeType tt){
-		this.realFilter=tt;
+		this.realFilter = tt;
 	}
 	
 	@Override
@@ -33,6 +33,30 @@ public class TimeFilter extends PhotoFilter
 	
 	public static interface TimeType{
 		public boolean isValid(Photo p);
+	}
+	
+	public static class StartEndFilter implements TimeType {
+		Date start;
+		Date end;
+		public StartEndFilter(Date startP, Date endP) {
+			this.start = startP;
+			this.end = endP;
+		}
+		
+		@Override
+		public boolean isValid(Photo p)
+		{
+			Date dt = p.dateTaken;
+			if (dt.after(this.start) && dt.before(this.end)) {
+				return true;
+			}
+			return false;
+		}
+		
+		@Override
+		public String toString() {
+			return DateUtil.getDateString(this.start) + DateUtil.getDateString(this.end);
+		}
 	}
 	
 	public static class YearFilter implements TimeType{
@@ -89,9 +113,9 @@ public class TimeFilter extends PhotoFilter
 		{
 			Date dt=p.dateTaken;
 			int hour=DateUtil.getDateField(dt, DateUtil.DateField.hour);
-			if(this.startHour<=this.endHour){
+			if(this.startHour <= this.endHour){
 		//		System.out.println(hour+","+this.startHour+","+this.endHour);
-				if(hour>=this.startHour && hour<=this.endHour){//如果没有跨天
+				if(hour >= this.startHour && hour <= this.endHour){//如果没有跨天
 			//		System.out.println("没有跨天");
 					return true;
 				}

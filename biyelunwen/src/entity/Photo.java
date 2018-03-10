@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import entity.filter.GeoFilter;
+import entity.filter.TimeFilter;
+import entity.filter.TimeFilter.TimeType;
 import sciencecluster.MyPoint;
 import trajectory.MyPointWithTime;
 import myutil.DateUtil;
@@ -17,22 +19,28 @@ import myutil.fileprocess.FileUtil;
 
 public class Photo implements Comparable<Photo>
 {
-	public static String workDir="G:/Flickr/data/";
-	public static String photoInfoDir=workDir+"photoinfo/";
-	public static String photoFavoriteDir=workDir+"favorite/";
-	public static String photoSizeDir=workDir+"size/";
-	public static String photoContentDir=workDir+"content/";
-	public static String userInfoDir=workDir+"userinfo/";
-	public static String clusterDir=workDir+"cluster/";
+	public static String workDir = "G:/ASR/school/data/biye/";
+	public static String photoIDsDir = workDir + "photo-id-files/";
+	public static String photoTempDir = workDir + "photo-temp-files/";
+	public static String photoInfoDir = workDir + "photo-info-files/";
+	public static String photoFavoriteDir = workDir + "favorite/";
+	public static String photoSizeDir = workDir + "size/";
+	public static String photoContentDir = workDir + "content/";
+	public static String userInfoDir = workDir + "userinfo/";
+	public static String userPhotosDir = workDir + "user-photos-files/";
+	public static String clusterDir = workDir + "cluster/";
 	
 	
-	public static String pidUidPath=workDir+"pid_uid.txt";
-	public static String pidPath=workDir+"pid.txt";
-	public static String allPhotosPath=workDir+"photoall.txt";
-	public static String photoIdImgFile=workDir+"pid_img.txt";
-	public static String photoIdTagsFile=workDir+"pid_tags.txt";
-	public static String photoIdImgTagsFile=workDir+"pid_img_tags.txt";
+	public static String pidUidPath = workDir + "pid_uid.txt";
+	public static String pidPath = workDir + "photo-ids.txt";
+	public static String photoIdImgFile = workDir + "pid_img.txt";
+	public static String photoIdTagsFile = workDir + "pid_tags.txt";
+	public static String photoIdImgTagsFile = workDir + "pid_img_tags.txt";
+	public static String photoBasicInfoPath = workDir + "photo_info.txt";
+	public static String photoSelectedBasicInfoPath = workDir + "photo_selected_info.txt";
+	public static String beijingUserIDs = workDir + "user_beijing_ids.txt";
 	
+	public static String allUserPhotosID = workDir + "user_photo_ids.txt";
 	
 	public String id;
 	public String name;
@@ -48,7 +56,7 @@ public class Photo implements Comparable<Photo>
 	public User user;
 
 	public Photo(String idPar){
-		this.id=idPar;
+		this.id = idPar;
 	}
 	
 	@Override
@@ -61,12 +69,17 @@ public class Photo implements Comparable<Photo>
 		return DateUtil.getDateField(this.dateTaken, df)+"";
 	}
 	
-	public static Map<String, Integer> getDateFields(List<Photo> photos, DateUtil.DateField df){
+	public static Map<String, Integer> countDateFields(List<Photo> photos, DateUtil.DateField df){
 		List<String> fs=new ArrayList<String>();
 		for(Photo p: photos){
 			fs.add(p.getDateString(df));
 		}
 		return StringUtil.countFrequencyWithNumber(fs);
+	}
+	
+	@Override
+	public String toString() {
+		return this.id + "," + this.userId + "," + this.latitude + "," + this.longitude + "," + DateUtil.getDateString(this.dateTaken);
 	}
 	
 	
@@ -107,64 +120,64 @@ public class Photo implements Comparable<Photo>
 	 */
 	//得到保存照片信息的路径
 	public static String getPhotoInfoFilePath(String id){
-		String path=Photo.photoInfoDir+id+".txt";
+		String path=Photo.photoInfoDir + id + ".txt";
 		return path;
-	}
-	//得到照片拍摄时间的特定的域
-	public static void showDateField(){
-		List<Photo> photos=Photo.getPhotos();
-		Map<String, Integer> dateC=Photo.getDateFields(photos, DateUtil.DateField.month);
-		for(Map.Entry<String, Integer> entry: dateC.entrySet()){
-			System.out.println(entry.getKey()+","+entry.getValue());
-		}
 	}
 	
 	/********************************************************************************************
 	 * 获得照片列表的操作
 	 */
 	//从文件中读取照片信息，返回一个列表
-	public static List<Photo> getPhotos(){
-		String path=Photo.allPhotosPath;
+	public static List<Photo> getPhotos(String path){
 		String splitString=",";
 		List<Photo> photos = new ArrayList<Photo>();
-		List<String> lines=FileUtil.getLinesFromFile(path);
-		for(int i=0; i<lines.size(); ++i){
+		List<String> lines = FileUtil.getLinesFromFile(path);
+		System.out.println(lines.size());
+		for(int i = 0; i < lines.size(); ++i){
 			String line=lines.get(i);
 			String[] ss=line.split(splitString);
 			Photo p=new Photo(ss[0]);
 			p.userId=ss[1];
 			p.latitude=Double.parseDouble(ss[2]);
 			p.longitude=Double.parseDouble(ss[3]);
-			try
-			{
-				p.dateTaken=DateUtil.sdf.parse(ss[4]);
-			} catch (ParseException e)
-			{
-				e.printStackTrace();
-			}
+			p.dateTaken = DateUtil.getDate(ss[4]);
 	//		p.favoriteNum=Integer.parseInt(ss[5]);
-			double minLat=GeoFilter.areaBeijing.bottom, maxLat=GeoFilter.areaBeijing.top, 
-					minLon=GeoFilter.areaBeijing.left, maxLon=GeoFilter.areaBeijing.right;
-			if(p.longitude<minLon || p.longitude>maxLon || p.latitude<minLat || p.latitude>maxLat)
-			{
-			//	System.out.println(p);
-				continue;
-			}
-			Date start=DateUtil.getDate("2011-01-01 00:00:00", DateUtil.sdf);
-			Date end=DateUtil.getDate("2016-10-01 00:00:00", DateUtil.sdf);
-			if(p.dateTaken.before(end) && p.dateTaken.after(start))
-				photos.add(p);
-		//	else
-		//		System.out.println(DateUtil.sdf.format(p.dateTaken));
+			photos.add(p);
 		}
-		System.out.println("使用读取所有照片函数，照片数量为："+photos.size());
+		System.out.println("使用读取所有照片函数，照片数量为：" + photos.size());
 		return photos;
+	}
+	
+	public static List<Photo> getPhotosOfBeijing() {
+		List<Photo> photos = getPhotos(Photo.photoBasicInfoPath);
+		photos = GeoFilter.getPhotosInArea(photos, GeoFilter.areaBeijing);
+		TimeType tf = new TimeFilter.StartEndFilter(DateUtil.getDate("2008-01-01 00:00:00"), DateUtil.getDate("2018-01-01 00:00:00"));
+		photos = TimeFilter.filterPhoto(photos, new TimeFilter(tf));
+		return photos;
+	}
+	
+	public static void savePhotos(List<Photo> photos, String path) {
+		List<String> content = new ArrayList<String>();
+		for (Photo p : photos) {
+			content.add(p.toString());
+		}
+		FileUtil.NewFile(path, content);
+	}
+	
+
+	//得到照片拍摄时间的特定的域
+	public static void showDateField(){
+		List<Photo> photos=Photo.getPhotos(Photo.photoBasicInfoPath);
+		Map<String, Integer> dateC = Photo.countDateFields(photos, DateUtil.DateField.month);
+		for(Map.Entry<String, Integer> entry: dateC.entrySet()){
+			System.out.println(entry.getKey()+","+entry.getValue());
+		}
 	}
 	
 	//根据照片的id合并照片信息
 	public static void mergePhotoInfo(){
-		List<String> big=FileUtil.getLinesFromFile(Photo.allPhotosPath);
-		List<String> small=FileUtil.getLinesFromFile(Photo.workDir+"pid_favorite.txt");
+		List<String> big=FileUtil.getLinesFromFile(Photo.photoBasicInfoPath);
+		List<String> small=FileUtil.getLinesFromFile(Photo.workDir + "pid_favorite.txt");
 		List<String> all=StringUtil.mergeLine(big, small, ",");
 		FileUtil.NewFile(Photo.workDir+"fall.txt", all);
 	}
@@ -207,8 +220,7 @@ public class Photo implements Comparable<Photo>
 	
 	public static void main(String[] args){
 	//	showDateField();
-	//	mergePhotoInfo();
+		mergePhotoInfo();
 	//	mergePhotoImgWithTag();
-		Photo.getPhotos();
 	}
 }

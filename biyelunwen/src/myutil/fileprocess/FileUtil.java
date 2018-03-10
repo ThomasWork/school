@@ -22,6 +22,8 @@ import java.util.List;
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 
+import entity.Photo;
+
 public  class  FileUtil
 {  
 	
@@ -47,6 +49,13 @@ public  class  FileUtil
 	   {
 		   System.out.println("执行了finally");
 	   }
+   }
+   
+   public static void deleteFilesInFile(String path) {
+	   List<String> lines = FileUtil.getLinesFromFile(path);
+		for (int i = 0; i < lines.size(); i += 1) {
+			FileUtil.deleteFile(lines.get(i));
+		}
    }
    
 

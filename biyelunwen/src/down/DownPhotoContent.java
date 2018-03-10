@@ -104,7 +104,7 @@ public class DownPhotoContent
 	public static void main(String[] args){
 	//	test1();
 	//	downUsersInfo();
-	//	downPhotoContent();
-		downPhotoContentMultiThreads();
+		downPhotoContent();
+	//	downPhotoContentMultiThreads();
 	}
 }

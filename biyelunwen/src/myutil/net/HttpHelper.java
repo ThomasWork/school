@@ -109,6 +109,7 @@ public class HttpHelper
 		System.out.println(e.getLocalizedMessage());
 	}
 	
+	//在这个网址可以下载很多jar文件。https://hc.apache.org/downloads.cgi
 	public static String getContentWithClient(String url) throws Exception{
 		 CloseableHttpClient httpclient = HttpClients.createDefault();
          HttpGet httpget = new HttpGet(url);
