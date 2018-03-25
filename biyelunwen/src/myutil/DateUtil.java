@@ -8,6 +8,7 @@ import java.util.Date;
 public class DateUtil
 {
 	public static String sdfString = "yyyy-MM-dd HH:mm:ss";
+	public static SimpleDateFormat notSafeSdf = new SimpleDateFormat(sdfString);
 	public static SimpleDateFormat sdfDHM=new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	public static SimpleDateFormat sdfDay=new SimpleDateFormat("yyyy-MM-dd");
 	public static SimpleDateFormat sdfLeft=new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

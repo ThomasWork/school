@@ -3,6 +3,8 @@ package down;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +13,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
+import myutil.DateUtil;
 import myutil.fileprocess.FileUtil;
 import myutil.multithreads.MyThread;
 import myutil.multithreads.ProcessUrl;
@@ -43,10 +46,22 @@ public class DownUserPhotos
 		return path;
 	}
 	
+	public static String getUserMergePhotosPath(String id) {
+		return Photo.userMergePhotosDir + id + ".txt";
+	}
+	
+	public static String getUserGeoPhotoPath(String id) {
+		return Photo.userMergePhotosGeo + id + ".txt";
+	}
+	
 	public static String downUserPhotos(String id, int page) {
 		String url = getUserPhotosUrl(id, page);
 		String path = getUserPhotosSavePath(id, page);
-		return HttpHelper.testAndGetContent(path, url);
+		String content = HttpHelper.testAndGetContent(path, url);
+		if (getTotalPages(content) < 0) {
+			System.out.println(path);
+		}
+		return content;
 	}
 	
 	public static int getTotalPages(String content) {
@@ -59,7 +74,7 @@ public class DownUserPhotos
 	            int page = Integer.parseInt(pageStr);
 	            return page;
 	        } catch (Exception e) {    
-	            System.out.println(content);
+	            System.out.println(e.toString());
 	        }
 		return -1;
 	}
@@ -75,11 +90,11 @@ public class DownUserPhotos
 		}
 	}
 	
-	public static Set<String> mergeUserPhotos(String id) {
+	public static void mergeUserPhotos(String id) {
 		List<entity.Photo> ps = new ArrayList<entity.Photo>();
 		String first = downUserPhotos(id, 1);
 		int pages = getTotalPages(first);
-		for (int i = 1; i <= pages && i <= 10; i += 1) {
+		for (int i = 1; i <= pages; i += 1) {
 			String content2 = downUserPhotos(id, i);
 			try {
 	            SAXReader saxReader = new SAXReader();
@@ -89,23 +104,38 @@ public class DownUserPhotos
 	            List<Element> pts = photos.elements("photo");
 	            for (Element el : pts) {
 	            	Photo p = new Photo(el.attributeValue("id"));
+	            	p.dateTaken = DateUtil.getDate(el.attributeValue("datetaken"));
+	            	p.latitude = Double.parseDouble(el.attributeValue("latitude"));
+	            	p.longitude = Double.parseDouble(el.attributeValue("longitude"));
+	            	p.userId = id;
 	            	ps.add(p);
 	            }
-	        } catch (Exception e) {    
-	            System.out.println(id + "\n" + content2);
+	        } catch (Exception e) {
+	            System.out.println(id + "\n" + e.toString());
 	        }
 		}
-		return ids;
+		Collections.sort(ps);
+		Photo.savePhotos(ps, getUserMergePhotosPath(id));
+		//System.out.println(id + "," + ps.size());
+	}
+	
+	public static void getUserPhotosWithGeo(String id) {
+		String path = DownUserPhotos.getUserMergePhotosPath(id);
+		User u = new User(id);
+		u.photosList = Photo.getPhotos(path);
+		u.photosList = Photo.getPhotosWithGeo(u.photosList);
+		Photo.savePhotos(u.photosList, getUserGeoPhotoPath(id));
 	}
 	
 	public static void test1() {
 		String userId = "141026916@N08";
-		downUserPhotos(userId);
+		//downUserPhotos(userId);
+		mergeUserPhotos(userId);
 	}
 	
 	//使用一个线程下载数据
 	public static void downUsersPhotos() {
-		List<String> ids= FileUtil.getLinesFromFile(User.usersIdPath);
+		List<String> ids= FileUtil.getLinesFromFile(Photo.userBeijingIDs);
 		System.out.println("需要下载"+ids.size());
 		for(int i=0; i<ids.size(); ++i) {
 			String id=ids.get(i);
@@ -118,21 +148,25 @@ public class DownUserPhotos
 	
 	
 	public static void downUsersPhotosMultiThreads(){
-		List<String> ids = FileUtil.getLinesFromFile(User.usersIdPath);
+		List<String> ids = FileUtil.getLinesFromFile(Photo.userBeijingIDs);
 		System.out.println("需要下载" + ids.size());
 		MyThread.processMultiStage(ids, new ProcessUrl(){
 			@Override
 			public void ProcessUrl(String url)
 			{
-				downUserPhotos(url);
+				//downUserPhotos(url);
+				//mergeUserPhotos(url);
+				getUserPhotosWithGeo(url);
 			}
 		});
 	}
 
 	public static void main(String[] args)
 	{
-		downUsersPhotosMultiThreads();
-		//getUsersPhotos();
+		//downUsersPhotosMultiThreads();
+		//test1();
+		FileUtil.deleteFilesInFile();
+		//mergeUserPhotos("8192694@N05");
 	}
 
 }

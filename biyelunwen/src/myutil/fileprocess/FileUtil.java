@@ -19,6 +19,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.swing.filechooser.FileSystemView;
+
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 
@@ -51,11 +53,17 @@ public  class  FileUtil
 	   }
    }
    
-   public static void deleteFilesInFile(String path) {
-	   List<String> lines = FileUtil.getLinesFromFile(path);
-		for (int i = 0; i < lines.size(); i += 1) {
-			FileUtil.deleteFile(lines.get(i));
-		}
+   public static void deleteFilesInFile() {
+	   FileSystemView fsv = FileSystemView.getFileSystemView();
+	   File com = fsv.getHomeDirectory();
+	   System.out.println(com.getPath());
+	   List<String> lines = FileUtil.getLinesFromFile(com.getPath() + "/todelete.txt");
+	   for (int i = 0; i < lines.size(); i += 1) {
+		   String line = lines.get(i);
+		   if (line.startsWith("G:/ASR/school/data/biye/")) {
+			   FileUtil.deleteFile(lines.get(i));
+		   }
+	   }
    }
    
 
@@ -181,13 +189,15 @@ public  class  FileUtil
    {
 	   try
 	   {
-		   if(content.size()<=0)
-			   return true;
 		   File newFile=new File(filePathAndName);
 	//	   FileUtil.NewFolder(newFile.getParent());
 		   if(!newFile.exists())
 			   newFile.createNewFile();
 			BufferedWriter bw=new BufferedWriter(new FileWriter(newFile));
+			if (content.size() <= 0) {
+				bw.close();
+				return true;
+			}
 			bw.write(content.get(0));//写第一行
 			for(int i=1;i<content.size();i++)
 			{
@@ -221,6 +231,15 @@ public  class  FileUtil
 		   e.printStackTrace();
 	   }
 	   return lines;
+   }
+   
+   public static List<Integer> getIntsFromFile(String file) {
+	   List<String> lines = getLinesFromFile(file);
+	   List<Integer> nums = new ArrayList<Integer>();
+	   for (String line: lines) {
+		   nums.add(Integer.parseInt(line));
+	   }
+	   return nums;
    }
    
    public static String readAllFromFile(String path){

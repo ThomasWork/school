@@ -16,12 +16,14 @@ import trajectory.GeoTrajectory;
 import trajectory.MyPointWithTime;
 import trajectory.TimeTrajectory;
 import trajectory.UserGeoTrajectory;
+import down.DownUserPhotos;
 import draw.KmlFile;
 import entity.filter.GeoFilter;
 import entity.filter.PhotoFilter;
 import entity.filter.TimeFilter;
 import entity.location.GetCountry;
 import myutil.DateUtil;
+import myutil.NumberUtil;
 import myutil.StringUtil;
 import myutil.fileprocess.FileUtil;
 
@@ -29,11 +31,8 @@ import myutil.fileprocess.FileUtil;
 
 public class User
 {
-	public static String usersIdPath=Photo.workDir + "users_id.txt";
-	public static String usersInfoPath=Photo.workDir+"userinfo.csv";
-	
 	public String id;
-	public int totalImg=-1;
+	public int totalImg = -1;
 	public List<Photo> photosList=new ArrayList<Photo>();
 	public List<Photo> selected;
 	
@@ -43,6 +42,7 @@ public class User
 	public int timeZone;
 	
 	public boolean isBeijing;
+	public MyPoint location;
 	
 	
 	public static final int BeijingTimeZone=8;
@@ -51,7 +51,6 @@ public class User
 	{
 		this.id=idPar;
 		this.sourceLocation="unknown";
-		System.out.println("创建一个新用户");
 	}
 	
 	public User(String[] info){
@@ -74,7 +73,7 @@ public class User
 	}
 	
 	//更新照片的时间
-	private void updatePhotosTime(){
+	private void updatePhotosTime() {
 		if(this.timeZone<0)
 			return;
 		for(Photo p: this.photosList){
@@ -87,38 +86,44 @@ public class User
 		}
 	}
 	
-	public static List<User> getUsersInfoList(){
-		String path=User.usersInfoPath;
-		List<User> users=new ArrayList<User>();
-		List<String[]> uls=FileUtil.ReadCSV(path, false);
-		int total=0;
-		for(String[] line: uls){
-			User u=new User(line);
-			String t=u.country;
-			if(null==t){
-			//	System.out.println(u.sourceLocation);
-			//	FileUtil.NewFile("./class/"+u.sourceLocation, "111111");
-				total++;
-//			System.out.println(u.country);
-			}
-			t=u.wordPart;
-			if(null!=t){
-		//		System.out.println(t+":"+u.country);
-			}
-			users.add(u);
-		}
-	//	System.out.println(total);
-		return users;
+	public void drawSpecificRoutes(GeoFilter.Area area) {
+		this.photosList = GeoFilter.getPhotosInArea(this.photosList, area);
+		this.drawRoutes();
 	}
 	
-	public static Map<String, User> getUsersInfo(){
-		List<User> users=User.getUsersInfoList();
-		Map<String, User> usersMap=new HashMap<String, User>();
-		for(User u: users){
-			usersMap.put(u.id, u);
+	public void drawRoutes() {
+		Photo.sortPhotos(this.photosList);//进行排序
+		List<MyPoint> mps = Photo.getPoints(this.photosList);
+		KmlFile.writeMyPoint(this.id + "_" + mps.size(), mps);
+	}
+	
+	public void getLocationByCluster() {
+		List<Photo> ps = Photo.getPhotosWithGeo(this.photosList);
+		if (this.photosList.size() > 50 && this.getDateDis() > 365 * 24) {
+			this.location = Photo.clusterPhotosAndGetLargestGeo(ps);
 		}
-	//	System.out.println(total);
-		return usersMap;
+	}
+	
+	
+	public double getDateDis() {
+		Photo start = this.photosList.get(0);
+		Photo last = this.photosList.get(this.photosList.size() - 1);
+		return DateUtil.getDateDisHour(last.dateTaken, start.dateTaken);
+	}
+	
+	public List<Double> getSequenceDateDis() {
+		Photo.sortPhotos(this.photosList);
+		List<Double> hours = new ArrayList<Double>();
+		for (int i = 1; i < this.photosList.size(); i += 1) {
+			Date pre = this.photosList.get(i - 1).dateTaken;
+			Date cur = this.photosList.get(i).dateTaken;
+			double time = DateUtil.getDateDisHour(cur, pre);
+			if (time <= 0.00000001) {
+				//System.out.println(this.photosList.get(i) + "," + this.photosList.get(i - 1));
+			}
+			hours.add(time);
+		}
+		return hours;
 	}
 	
 	public List<String> getDateString(DateUtil.DateField df)
@@ -149,22 +154,19 @@ public class User
 	//设置照片的用户并且返回这些用户
 	public static List<User> setPhotoUsersAndGetUsers(List<Photo> photos){
 		List<User> users=new ArrayList<User>();
-		Map<String, User> allUsers=User.getUsersInfo();//new HashMap<String, User>();
-		Map<String, User> selected=new HashMap<String, User>();
-		for(Photo p: photos){
-			User u=allUsers.get(p.userId);
+		Map<String, User> selected = new HashMap<String, User>();
+		for(Photo p: photos) {
+			User u = selected.get(p.userId);
 			if(null==u){
-				u=new User(p.userId);
-				allUsers.put(p.userId, u);//这个集合是最大的
+				u = new User(p.userId);
+				selected.put(p.userId, u);//这里作为选中的
 			}
-			p.user=u;
-			selected.put(p.userId, u);//这里作为选中的
+			p.user = u;
 			u.photosList.add(p);
 		}		
 		for(Map.Entry<String, User> entry: selected.entrySet()){
 			users.add(entry.getValue());
-		}		
-	//	System.out.println("UserNumber:"+users.size());
+		}
 		return users;
 	}
 	
@@ -195,17 +197,6 @@ public class User
 		return photos;
 	}
 	
-	//画在特定区域的路线
-	public static void drawSpecificRoutes(User u, GeoFilter.Area area){
-		u.selected=GeoFilter.getPhotosInArea(u.photosList, area);
-		Photo.sortPhotos(u.selected);//进行排序
-		double temp=Photo.getMaxHourDis(u.selected);
-	//	if(24<temp && temp<96){
-			List<MyPoint> mps=Photo.getPoints(u.selected);
-			KmlFile.writeMyPoint(u.id, mps);
-	//	}
-	}
-	
 	/**************************************************************************************************************************
 	 * 对用户列表进行的整体操作
 	 */
@@ -216,7 +207,7 @@ public class User
 		for(User u: users){
 			if(u.photosList.size()>30)
 			{
-				drawSpecificRoutes(u, GeoFilter.areaBeijing);
+				u.drawSpecificRoutes(GeoFilter.areaBeijing);
 			}
 		}
 	}
@@ -233,18 +224,8 @@ public class User
 		List<User> users=User.getUsersWithPhotos();
 		System.out.println("用户数："+users.size());
 		for(User u: users){
-			User.drawSpecificRoutes(u, GeoFilter.areaBeijing);
+			u.drawSpecificRoutes(GeoFilter.areaBeijing);
 		}
-	}
-	
-	//将用户id列表写到文件中
-	public static void getUsersId(){
-		List<User> users=User.getUsersWithPhotos();
-		List<String> ids=new ArrayList<String>();
-		for(User u: users){
-			ids.add(u.id);
-		}
-		FileUtil.NewFile(User.usersIdPath, ids);
 	}
 	
 	//统计游客的信息包含他们来自哪里，以及他们的照片数量有多少
@@ -273,7 +254,7 @@ public class User
 	public static void writeUserVisitBlockIndex()
 	{
 	//	List<Photo> photos=Photo.getPhotos();
-		List<Photo> photos=GeoFilter.getAreaPhotos(GeoFilter.areaBeijingNeibu);
+		List<Photo> photos = Photo.getPhotosOfBeijing();
 		List<User> users = User.setPhotoUsersAndGetUsers(photos);
 		GeoBlock.setStaticParameter(Photo.getPoints(photos), 100, 100);//首先设置基本参数
 	//	KmlFile.writeTrajectories(GeoTrajectory.getTrajectorysFromUser(users.get(14), 100000), "15号用户");
@@ -297,7 +278,7 @@ public class User
 	public static void writeUserEachTrajectoryVisitBlockIndex()
 	{
 	//	List<Photo> photos=Photo.getPhotos();
-		List<Photo> photos=GeoFilter.getAreaPhotos(GeoFilter.areaBeijingNeibu);
+		List<Photo> photos = Photo.getPhotosOfBeijing();
 		List<User> users = User.setPhotoUsersAndGetUsers(photos);
 		GeoBlock.setStaticParameter(Photo.getPoints(photos), 100, 100);//首先设置基本参数
 	//	KmlFile.writeTrajectories(GeoTrajectory.getTrajectorysFromUser(users.get(14), 100000), "15号用户");
@@ -322,7 +303,7 @@ public class User
 	//写当地住户
 	public static void writeLocalUserEachTrajectoryVisitBlockIndex(){
 		int minTraNum=4;//最小的轨迹数目
-		List<Photo> photos=GeoFilter.getAreaPhotos(GeoFilter.areaBeijingNeibu);
+		List<Photo> photos = Photo.getPhotosOfBeijing();
 		List<User> users = User.setPhotoUsersAndGetUsers(photos);
 		GeoBlock.setStaticParameter(Photo.getPoints(photos), 100, 100);//首先设置基本参数
 	//	KmlFile.writeTrajectories(GeoTrajectory.getTrajectorysFromUser(users.get(14), 100000), "15号用户");
@@ -375,30 +356,98 @@ public class User
 		return result;
 	}
 	
-	public static void getUserIds() {
-		Set<String> uids = new HashSet<String>();
-		List<Photo> photos = Photo.getPhotos(Photo.photoBasicInfoPath);
-		for (int i = 0; i < photos.size(); i += 1) {
-			uids.add(photos.get(i).userId);
-		}
-		List<String> uidss = new ArrayList<String>(uids);
-		FileUtil.NewFile(Photo.beijingUserIDs, uidss);
+	/****************************                   毕业论文                 ***************************************/
+	public static List<String> getUserIds() {
+		List<String> ids = FileUtil.getLinesFromFile(Photo.userBeijingIDs);
+		//ids.clear();
+		//ids.add("101212512@N07");
+		//return ids.subList(0, 2000);
+		return ids;
 	}
+	
+	public static List<User> getUsersWithHisAllPhoto2() {
+		List<String> ids = getUserIds();
+		List<User> us = new ArrayList<User>();
+		for (int i = 0; i < ids.size(); i += 1) {
+			if (i % 100 == 0) {
+			System.out.println(i + ", " + ids.get(i));
+			}
+			String path = DownUserPhotos.getUserMergePhotosPath(ids.get(i));
+			User u = new User(ids.get(i));
+			u.photosList = Photo.getPhotos(path);
+			us.add(u);
+		}
+		return us;
+	}
+	
+	public static List<User> getUsersWithHisPhotoGeo() {
+		List<String> ids = getUserIds();
+		List<User> us = new ArrayList<User>();
+		for (int i = 0; i < ids.size(); i += 1) {
+			if (i % 100 == 0) {
+			System.out.println(i + ", " + ids.get(i));
+			}
+			String path = DownUserPhotos.getUserGeoPhotoPath(ids.get(i));
+			User u = new User(ids.get(i));
+			u.photosList = Photo.getPhotos(path);
+			us.add(u);
+		}
+		return us;
+	}
+	
+	public static void writeUserLocations() {
+		List<String> locations = new ArrayList<String>();
+		List<User> users = getUsersWithHisPhotoGeo();
+		for (User u: users) {
+			u.getLocationByCluster();
+			if (null != u.location) {
+				locations.add(u.id + "," + u.location.x + ", " + u.location.y);
+			}
+		}
+		FileUtil.NewFile(Photo.userLocations, locations);
+	}
+	
+	public static void getBeijingUserPhotos() {
+		Set<String> userIds = new HashSet<String>();
+		
+		List<String> lines = FileUtil.getLinesFromFile(Photo.userLocations);
+		Set<String> beijingids = new HashSet<String>();
+		for (String line: lines) {
+			String[] ss = line.split(",");
+			Photo p = new Photo(ss[0]);
+			p.longitude = Double.parseDouble(ss[1]);
+			p.latitude = Double.parseDouble(ss[2]);
+			userIds.add(ss[0]);
+			if (GeoFilter.isPhotoInArea(p, GeoFilter.areaBeijing)) {
+				beijingids.add(ss[0]);
+			}
+		}
+		System.out.println("all user ids: " + userIds.size());
+		System.out.println("beijing user ids: " + beijingids.size());
+		
+		List<Photo> ps = Photo.getPhotosOfBeijing();
+		List<Photo> bps = new ArrayList<Photo>();
+		List<Photo> nbps = new ArrayList<Photo>();
+		for (Photo p : ps) {
+			if (beijingids.contains(p.userId)) {
+				bps.add(p);
+			} else {
+				if (userIds.contains(p.userId)) {
+					nbps.add(p);
+				}
+			}
+		}
+		Photo.savePhotos(bps, Photo.photoSelectedBeijingUser);
+		Photo.savePhotos(nbps, Photo.photoSelectedNotBeijingUser);
+	}
+	
 	
 	public static void main(String[] args)
 	{
-	//	test1();
-	//	drawUsersSelected();
-	//	drawUsersRoutes();
-	//	getUsersId();
-	//	drawSpecificBlockReoutes();	
-	//	getUsersInfo();
-	//	getUsersWithPhotos();
-	//	writeWorldParData();
-	//	writeUserVisitBlockIndex();
-	//	writeUserEachTrajectoryVisitBlockIndex();
-	//	writeLocalUserEachTrajectoryVisitBlockIndex();
-		getUserIds();
+		//getUserIds();
+		//getUsersWithHisAllPhoto();
+		getBeijingUserPhotos();
+		//writeUserLocations();
 	}
 
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <rsp stat="ok">
-<photo id="31370068340" secret="b2959ee3f8" server="478" farm="1" dateuploaded="1482155056" isfavorite="0" license="0" safety_level="0" rotation="0" originalsecret="6f89ca2306" originalformat="jpg" views="2" media="photo">
+<photo id="31370068340" secret="b2959ee3f8" server="478" farm="1" dateuploaded="1482155056" isfavorite="0" license="0" safety_level="0" rotation="0" originalsecret="6f89ca2306" originalformat="jpg" views="3" media="photo">
 	<owner nsid="141026916@N08" username="ThomasXu_1" realname="Thomas Xu" location="" iconserver="0" iconfarm="0" path_alias="" />
 	<title>波杰克-无时间-北京</title>
 	<description>不带有时间信息，使用北京时间上传</description>

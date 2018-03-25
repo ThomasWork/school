@@ -53,12 +53,21 @@ public class StringUtil
 			else
 				frequency.put(line, count+1);
 		}
-	/*	for(Map.Entry<String, Integer> entry: frequency.entrySet())
+		/*System.out.println("共有：" + frequency.size());
+		for(Map.Entry<String, Integer> entry: frequency.entrySet())
 		{
 			System.out.println(entry.getKey()+","+entry.getValue());
 		//	System.out.println(entry.getValue());
 		}*/
 		return frequency;
+	}
+	
+	public static Map<String, Integer> countFrequencyToLower(List<String> lines)
+	{
+		for (int i = 0; i < lines.size(); i += 1) {
+			lines.set(i, lines.get(i).toLowerCase());
+		}
+		return countFrequency(lines);
 	}
 	
 	public static Map<String, Integer> getIndexMap(List<String> lines){
@@ -86,23 +95,23 @@ public class StringUtil
 		Map<String, Integer> frequency = new TreeMap<String, Integer>(
 				new Comparator<String>(){
             public int compare(String o1, String o2) {
-            	Double t1=Double.parseDouble(o1);
-            	Double t2=Double.parseDouble(o2);
+            	Double t1 = Double.parseDouble(o1);
+            	Double t2 = Double.parseDouble(o2);
             	return t1.compareTo(t2);
             }     
 			});
 		for(String line : lines)
 		{
-			Integer count=frequency.get(line);
-			if(null==count)//如果之前还没有数据
+			Integer count = frequency.get(line);
+			if(null == count)//如果之前还没有数据
 				frequency.put(line, 1);
 			else
 				frequency.put(line, count+1);
 		}
-	/*	for(Map.Entry<String, Integer> entry: frequency.entrySet())
+		for(Map.Entry<String, Integer> entry: frequency.entrySet())
 		{
-			System.out.println(entry.getKey()+","+entry.getValue());
-		}*/
+			System.out.println(entry.getKey() + "," + entry.getValue());
+		}
 		return frequency;
 	}
 	

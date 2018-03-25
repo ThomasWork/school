@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<GroundOverlay>
+	<name>故宫-大一点</name>
+	<Icon>
+		<href>./gugongbig.png</href>
+		<viewBoundScale>1</viewBoundScale>
+	</Icon>
+	<LatLonBox>
+		<north>39.9230</north>
+		<south>39.9110</south>
+		<east>116.3970</east>
+		<west>116.3840</west>
+	</LatLonBox>
+</GroundOverlay>
+</kml>

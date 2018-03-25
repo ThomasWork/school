@@ -11,9 +11,9 @@ import myutil.fileprocess.FileUtil;
 
 public abstract class MyThread implements Runnable
 {
-	public static int showLoop = 50;//达到这个数目之后显示一下进度
+	public static int showLoop = 100;//达到这个数目之后显示一下进度
 	public static int stageNumber = 2000;//一阶段处理N个
-	public static int threadNum = 5;
+	public static int threadNum = 3;
 	public static String configPath="config/threads.txt";
 	public static boolean showStageProgress=true;
 	public static boolean showThreadProcess=true;

@@ -99,7 +99,6 @@ public class DownPhotoInfo
 		}
 		FileUtil.NewFile(Photo.photoBasicInfoPath, infos);
 		List<String> uids2 = new ArrayList<String>(uids);
-		FileUtil.NewFile(Photo.beijingUserIDs, uids2);
 	}
 	
 	public static void test1() {
@@ -121,10 +120,10 @@ public class DownPhotoInfo
     }
 	
 	public static void main(String[] args){
-	//	test1("31370068340");
+		test1("31370068340");
 	//	downPhotos();
 	//	downPhotosMultiThreads();
-		getAllUserId();
+	//	getAllUserId();
 		
 		
 	//	test1();

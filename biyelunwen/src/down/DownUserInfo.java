@@ -1,6 +1,12 @@
 package down;
 
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
 import entity.Photo;
 import entity.User;
@@ -40,7 +46,7 @@ public class DownUserInfo
 	
 	//使用一个线程下载数据
 	public static void downUsersInfo(){
-		List<String> ids= FileUtil.getLinesFromFile(User.usersIdPath);
+		List<String> ids= FileUtil.getLinesFromFile(Photo.userBeijingIDs);
 		System.out.println("需要下载"+ids.size());
 		for(int i=0; i<ids.size(); ++i){
 			String id=ids.get(i);
@@ -53,23 +59,61 @@ public class DownUserInfo
 	
 	
 	public static void downUsersInfoMultiThreads(){
-		List<String> ids= FileUtil.getLinesFromFile(User.usersIdPath);
+		List<String> ids= FileUtil.getLinesFromFile(Photo.userBeijingIDs);
 		System.out.println("需要下载"+ids.size());
 		MyThread.processMultiStage(ids, new ProcessUrl(){
 			@Override
 			public void ProcessUrl(String url)
 			{
-				url=DownUserInfo.getUserInfoUrl(url);
 				String path=DownUserInfo.getUserInfoSavePath(url);
+				url=DownUserInfo.getUserInfoUrl(url);
 				HttpHelper.testAndGetContent(path, url);
 			}
 		});
 	}
 	
+	public static int getUserPhotoNum(String content) {
+		try {
+		//	System.out.println(content);
+	            SAXReader saxReader = new SAXReader();
+	            Document document = saxReader.read(new ByteArrayInputStream(content.getBytes("UTF-8")));//必须指定文件的绝对路径  
+	            Element rootElement = document.getRootElement();
+	            Element person = rootElement.element("person");
+	           // System.out.println(person);
+	            Element photos = person.element("photos");
+	            Element countE = photos.element("count");
+	            String countStr = countE.getText();
+	           // System.out.println(countStr);
+	            int count = Integer.parseInt(countStr);
+	            return count;
+	        } catch (Exception e) {    
+	            System.out.println(e.toString());
+	        }
+		return -1;
+	}
+	
+	public static void writeUserPhotoNum() {
+		List<String> ids = FileUtil.getLinesFromFile(Photo.userBeijingIDs);
+		//ids = ids.subList(0, 2);
+		List<String> nums = new ArrayList<String>();
+		for(String id : ids) {
+			String path = DownUserInfo.getUserInfoSavePath(id);
+			String content = FileUtil.readAllFromFile(path).trim();
+			int page = getUserPhotoNum(content);
+			if (-1 == page) {
+				System.out.println(path);
+			} else {
+				nums.add("" + page);
+			}
+		}
+		FileUtil.NewFile(Photo.userPhotoFromInfoStatistic, nums);
+	}
+	
 	public static void main(String[] args){
-		test1();
+		//test1();
 	//	downUsersInfo();
-	//	downUsersInfoMultiThreads();
+		//downUsersInfoMultiThreads();
+		writeUserPhotoNum();
 	}
 
 }

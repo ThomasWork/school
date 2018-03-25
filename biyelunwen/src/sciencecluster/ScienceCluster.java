@@ -44,7 +44,6 @@ public class ScienceCluster
 			this.showDistance();
 	}
 	
-	
 	//为了防止空间不够用，所以采用增加计算量的方式
 	private double getDistance(int i, int j){
 		double dis = this.points.get(i).getDistance(this.points.get(j));
@@ -273,7 +272,7 @@ public class ScienceCluster
 		this.clusters=new HashMap<Integer, List<MyPoint>>();
 		for(int i=0; i<this.pointNumber; ++i)
 		{
-			int cId=this.clusterId[i];
+			int cId = this.clusterId[i];
 			List<MyPoint> mps=this.clusters.get(cId);
 			if(null==mps)
 			{

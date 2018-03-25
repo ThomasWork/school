@@ -1,6 +1,7 @@
 package sciencecluster;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,7 @@ public class ClusterResult
 	public static List<MyPoint> places;
 	
 	static{
-		ClusterResult.places=KmlFile.getPointsFromKml("C:/Users/Admin/Desktop/北京景点选中.kml");
-		
+		ClusterResult.places = KmlFile.getPointsFromKml("G:/毕业论文/画图/北京景点.kml");
 	}
 	
 	public ClusterResult(int cid, List<MyPoint> mps){
@@ -82,7 +82,7 @@ public class ClusterResult
 		this.blocks=new TreeSet<String>();
 		
 		for(MyPoint mp: this.points){
-			String key=ClusterResult.getPointKey(mp);
+			String key = ClusterResult.getPointKey(mp);
 			this.blocks.add(key);
 		}
 	}
@@ -109,12 +109,12 @@ public class ClusterResult
 	}
 	
 	//根据景点的地理位置来设置聚类中心的标签
-	public void setClusterResultLabel(List<MyPoint> interests){
-		MyPoint.MyPointGPSDistance mg=new MyPoint.MyPointGPSDistance();
+	public void setClusterResultLabel(List<MyPoint> interests) {
+		MyPoint.MyPointGPSDistance mg = new MyPoint.MyPointGPSDistance();
 		double minDis=Double.MAX_VALUE;
 		MyPoint mpmin=null;
-		double MIN=200;//如果在200米之内表示为景点
-		for(MyPoint center: this.points){
+		double MIN = 100;//如果在200米之内表示为景点
+		for(MyPoint center: this.points) {
 			MyPoint temp=new MyPoint();
 			String[] ss=center.label.split(",");
 			temp.x=Double.parseDouble(ss[0]);temp.y=Double.parseDouble(ss[1]);
@@ -137,21 +137,21 @@ public class ClusterResult
 		String temp="";
 		List<MyPoint> mps = new ArrayList<MyPoint>();		
 		for(ClusterResult cr: crs){
-			cr.setClusterResultLabel(ClusterResult.places);
-			MyPoint center=cr.getDrawMyPoint();//得到当前聚类中心的标识点
-			center.label=center.label+"_"+cr.label;
+			cr.setClusterResultLabel(ClusterResult.places);//设置聚类中心的标签
+			MyPoint center = cr.getDrawMyPoint();//得到当前聚类中心的标识点
+			center.label = center.label + "_" + cr.label;
 		//	temp+=center.label+",";
-			temp+=cr.label+"、";
+			temp += cr.label+"、";
 			mps.add(center);//这里是为了调试用
 		}
-		System.out.println(temp);
-		KmlFile.writeMyPoint("设置聚类结果标签：cluster_to_point", mps);
+		//System.out.println(temp);
+		//KmlFile.writeMyPoint("设置聚类结果标签：cluster_to_point", mps);
 	}
 	
 	@Override
 	public String toString(){
 		StringBuilder sb=new StringBuilder("id:"+this.id);
-		Iterator<String> it=this.blocks.iterator();
+		Iterator<String> it = this.blocks.iterator();
 		while(it.hasNext()){
 			sb.append("\n"+it.next());
 		}
@@ -159,14 +159,33 @@ public class ClusterResult
 	}
 	
 	//获取每个聚类结果的排名
-	public static Map<String, Integer> getPlacesIndex (List<ClusterResult> crs){
-		Map<String, Integer> index=new TreeMap<String, Integer>();
-		for(ClusterResult cr: crs){
-			cr.setClusterResultLabel(ClusterResult.places);
-			MyPoint center=cr.getDrawMyPoint();//得到当前聚类中心的标识点
-			int num=Integer.parseInt(center.label);
-			index.put(cr.label, num);
-			center.label=center.label+"_"+cr.label;
+	public static Map<String, List<Integer>> getPlacesIndex (List<ClusterResult> crs){
+		Map<String, List<Integer>> index=new TreeMap<String, List<Integer>>();
+		for(ClusterResult cr: crs) {
+			cr.setClusterResultLabel(ClusterResult.places);//设置聚类结果的地名标签
+			MyPoint center = cr.getDrawMyPoint();//得到当前聚类中心的标识点
+			int num = Integer.parseInt(center.label);
+			List<Integer> ints = index.get(cr.label);
+			if (null == ints) {
+				ints = new ArrayList<Integer>();
+				index.put(cr.label, ints);
+			}
+			ints.add(cr.id);
+			center.label = center.label+"_"+ cr.label;
+		}
+		return index;
+	}
+	
+	public static Map<String, List<ClusterResult>> getLabeledClusterResult (List<ClusterResult> crs){
+		Map<String, List<ClusterResult>> index=new TreeMap<String, List<ClusterResult>>();
+		for(ClusterResult cr: crs) {
+			cr.setClusterResultLabel(ClusterResult.places);//设置聚类结果的地名标签
+			List<ClusterResult> ints = index.get(cr.label);
+			if (null == ints) {
+				ints = new ArrayList<ClusterResult>();
+				index.put(cr.label, ints);
+			}
+			ints.add(cr);
 		}
 		return index;
 	}
@@ -176,12 +195,13 @@ public class ClusterResult
 		return key;
 	}
 	
+	//剔除没有找到类的点
 	public static List<ClusterResult> getClusters(Map<Integer, List<MyPoint>> result){
-		List<ClusterResult> clusters=new ArrayList<ClusterResult>();
+		List<ClusterResult> clusters = new ArrayList<ClusterResult>();
 		
 		for(Map.Entry<Integer, List<MyPoint>> entry: result.entrySet()){
-			int cId=entry.getKey();
-			if(ClusterResult.NotClusterId==cId)
+			int cId = entry.getKey();
+			if(ClusterResult.NotClusterId == cId)
 				continue;
 			clusters.add(new ClusterResult(cId, entry.getValue()));
 		}
@@ -191,8 +211,8 @@ public class ClusterResult
 	
 	public static Map<String, List<Integer>> getInitPlaceIndex(){
 		Map<String, List<Integer>> placesIndex= new TreeMap<String, List<Integer>>();
-		for(int i=0; i<ClusterResult.places.size(); ++i){
-			String label=places.get(i).label;
+		for(int i = 0; i < ClusterResult.places.size(); ++i){
+			String label = places.get(i).label;
 			placesIndex.put(label, new ArrayList<Integer>());
 		}
 		return placesIndex;
@@ -240,6 +260,51 @@ public class ClusterResult
 			if(key.contains("未知"))
 				System.out.println("包含未知");
 			places.get(key).add(entry.getValue());
+		}
+	}
+	
+	/*******************************              毕业论文                      ******************************/
+	public static void getPlaceSortResult(List<ClusterResult> crs, int N) {
+		Map<String, List<ClusterResult>> index = ClusterResult.getLabeledClusterResult(crs);//每个聚类分配一个标签，如颐和园，故宫等
+		Map<Double, List<String>> sorted = new TreeMap<Double, List<String>>().descendingMap();
+		for (Map.Entry<String, List<ClusterResult>> entry: index.entrySet()) {
+			double sum = 0;
+			int count = 0;
+			List<ClusterResult> lcrs = entry.getValue();
+			System.out.print(entry.getKey() + ",\t");
+			List<Double> weight = new ArrayList<Double>();
+			for (ClusterResult cr : lcrs) {
+				System.out.print(cr.id + ", \t");
+				for (int i = 0; i < cr.points.size(); i += 1) {
+					weight.add(cr.points.get(i).getPointWeight());
+				}
+				count += cr.points.size();
+			}
+			System.out.println(count);
+			Collections.sort(weight);
+			for (int i = 0; i < N; i += 1) {
+				int current = weight.size() - 1 - i;
+				if (current < 0) {
+					current = 0;
+				}
+				sum += weight.get(current);
+			}
+			List<String> current = sorted.get(sum);
+			if (null == current) {
+				current = new ArrayList<String>();
+				sorted.put(sum, current);
+			}
+			current.add(entry.getKey());
+			if (weight.size() < N) {
+				System.out.println("<<<<<<<<<<<<<<<<<<<<N " + entry.getKey());
+			}
+		}
+		int start = 0;
+		for (Map.Entry<Double, List<String>> entry: sorted.entrySet()) {
+			for (String str: entry.getValue()) {
+				start += 1;
+				System.out.println(start + "," + entry.getKey() + "," + str);
+			}
 		}
 	}
 }

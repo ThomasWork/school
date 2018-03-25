@@ -34,12 +34,21 @@ public class NumberUtil
 		}
 		boolean show=true;
 		if(show){
-			System.out.println("total:"+numbers.size());
-			
-			System.out.println("<"+df.format(thresholds[0])+":"+count[0]+":"+count[0]*1.0/numbers.size());
-			for(int i=0; i<thresholds.length-1; ++i)
-				System.out.println(df.format(thresholds[i])+"---"+df.format(thresholds[i+1])+":"+count[i+1]+":"+count[i+1]*1.0/numbers.size());
-			System.out.println(">"+df.format(thresholds[thresholds.length-1])+":"+count[thresholds.length]+":"+count[thresholds.length]*1.0/numbers.size());
+			for (int i = 0; i < numbers.size(); i += 1) {
+				
+			}
+			System.out.println("total nums: " + numbers.size());
+			df = new DecimalFormat("0");
+			double aggregate = count[0]*100.0/numbers.size();
+			System.out.println("<"+df.format(thresholds[0])+","+count[0]+"," + aggregate + "," + aggregate);
+			for(int i = 0; i < thresholds.length - 1; ++i) {
+				double rate = count[i+1]*100.0/numbers.size();
+				aggregate += rate;
+				System.out.println(df.format(thresholds[i])+"~"+df.format(thresholds[i+1])+","+count[i+1]+"," + rate + "," + aggregate);
+			}
+			double last = count[thresholds.length]*100.0/numbers.size();
+			aggregate += last;
+			System.out.println(">"+df.format(thresholds[thresholds.length-1])+","+count[thresholds.length] + "," + last + "," + aggregate);
 		}
 		return count;
 	}
@@ -55,9 +64,15 @@ public class NumberUtil
 			if(temp.compareTo(max)>0)
 				max=temp;
 		}
-		Long dMax=(Long) max;
-		Long dMin=(Long) min;
-		System.out.println(dMin+" "+dMax+" "+(dMax-dMin));
+		System.out.println(min + " " + max);
+	}
+	
+	public static double getSum(List<Double> nums) {
+		double sum = 0;
+		for (Double num: nums) {
+			sum += num;
+		}
+		return sum;
 	}
 	
 	public static void testCountFrequency(){
@@ -241,6 +256,13 @@ public class NumberUtil
 		if(c<temp)
 			temp=c;
 		return temp;
+	}
+	
+	public static boolean isZero(double v) {
+		if (-0.000000001 < v && v < 0.00000000001) {
+			return true;
+		}
+		return false;
 	}
 	
 	public static void main(String[] args)

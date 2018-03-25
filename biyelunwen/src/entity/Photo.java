@@ -4,15 +4,21 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import draw.KmlFile;
 import entity.filter.GeoFilter;
 import entity.filter.TimeFilter;
 import entity.filter.TimeFilter.TimeType;
+import sciencecluster.GeoBlock;
 import sciencecluster.MyPoint;
+import sciencecluster.ScienceCluster;
 import trajectory.MyPointWithTime;
 import myutil.DateUtil;
+import myutil.NumberUtil;
 import myutil.StringUtil;
 import myutil.fileprocess.FileUtil;
 
@@ -20,27 +26,44 @@ import myutil.fileprocess.FileUtil;
 public class Photo implements Comparable<Photo>
 {
 	public static String workDir = "G:/ASR/school/data/biye/";
+	
+	
+	public static String statisticDir = workDir + "statistic/";
+	public static String userPhotoFromInfoStatistic = statisticDir + "user_photo_from_info_count.txt";
+	public static String userPhotoAllStatistic = statisticDir + "user_all_count.txt";
+	public static String userPhotoGeoStatistic = statisticDir + "user_geo_all.txt";
+	
 	public static String photoIDsDir = workDir + "photo-id-files/";
-	public static String photoTempDir = workDir + "photo-temp-files/";
 	public static String photoInfoDir = workDir + "photo-info-files/";
+	public static String userPhotosDir = workDir + "user-photos-files/";
+	public static String userMergePhotosDir = workDir + "user-photos-merge-files/";
+	public static String userMergePhotosGeo = workDir + "user-photos-merge-geo/";
+	public static String userInfoDir = workDir + "user-info-files/";
+	
+	
 	public static String photoFavoriteDir = workDir + "favorite/";
 	public static String photoSizeDir = workDir + "size/";
 	public static String photoContentDir = workDir + "content/";
-	public static String userInfoDir = workDir + "userinfo/";
-	public static String userPhotosDir = workDir + "user-photos-files/";
 	public static String clusterDir = workDir + "cluster/";
 	
+	public static String pidPath = workDir + "photo_ids.txt";
+	public static String photoSelectedBasicInfoPath = workDir + "photo_selected_info.txt";
+	public static String photoSelectedBeijingUser = workDir + "photo_selected_beijing_user.txt";
+	public static String photoSelectedNotBeijingUser = workDir + "photo_selected_not_beijing_user.txt";
+	
+	public static String photoSelectedBeijingHotSpots = workDir + "photo_selected_beijing_hot_spots";
+	public static String photoSelectedNotBeijingHotSpots = workDir + "photo_selected_not_beijing_hot_splots";
+	public static String photoSelectedAllHotSpots = workDir + "photo_selected_all_hot_spots.txt";
+	
+	
+	public static String userBeijingIDs = workDir + "user_beijing_ids.txt";
+	public static String userLocations = workDir + "user_locations.txt";
 	
 	public static String pidUidPath = workDir + "pid_uid.txt";
-	public static String pidPath = workDir + "photo-ids.txt";
 	public static String photoIdImgFile = workDir + "pid_img.txt";
 	public static String photoIdTagsFile = workDir + "pid_tags.txt";
 	public static String photoIdImgTagsFile = workDir + "pid_img_tags.txt";
 	public static String photoBasicInfoPath = workDir + "photo_info.txt";
-	public static String photoSelectedBasicInfoPath = workDir + "photo_selected_info.txt";
-	public static String beijingUserIDs = workDir + "user_beijing_ids.txt";
-	
-	public static String allUserPhotosID = workDir + "user_photo_ids.txt";
 	
 	public String id;
 	public String name;
@@ -66,11 +89,11 @@ public class Photo implements Comparable<Photo>
 	}
 	
 	public String getDateString(DateUtil.DateField df){
-		return DateUtil.getDateField(this.dateTaken, df)+"";
+		return DateUtil.getDateField(this.dateTaken, df) + "";
 	}
 	
 	public static Map<String, Integer> countDateFields(List<Photo> photos, DateUtil.DateField df){
-		List<String> fs=new ArrayList<String>();
+		List<String> fs = new ArrayList<String>();
 		for(Photo p: photos){
 			fs.add(p.getDateString(df));
 		}
@@ -90,7 +113,7 @@ public class Photo implements Comparable<Photo>
 	public static void sortPhotos(List<Photo> photos){
 		Collections.sort(photos);
 		for(int i=0; i<photos.size(); ++i){
-			photos.get(i).id=i+"";
+			//photos.get(i).id=i+"";
 		}
 	}	
 	
@@ -124,15 +147,49 @@ public class Photo implements Comparable<Photo>
 		return path;
 	}
 	
-	/********************************************************************************************
-	 * 获得照片列表的操作
-	 */
+	//根据照片的id合并照片信息
+	public static void mergePhotoInfo(){
+		List<String> big=FileUtil.getLinesFromFile(Photo.photoBasicInfoPath);
+		List<String> small=FileUtil.getLinesFromFile(Photo.workDir + "pid_favorite.txt");
+		List<String> all=StringUtil.mergeLine(big, small, ",");
+		FileUtil.NewFile(Photo.workDir+"fall.txt", all);
+	}
+	
+	//将照片的图片链接和标签合并
+	public static void mergePhotoImgWithTag(){
+		List<String> imgs=FileUtil.getLinesFromFile(Photo.photoIdImgFile);
+		List<String> tags=FileUtil.getLinesFromFile(Photo.photoIdTagsFile);
+		List<String> out=StringUtil.mergeLine(imgs, tags, ",");
+		FileUtil.NewFile(Photo.photoIdImgTagsFile, out);
+	}
+	
+	public static MyPoint getPoint(Photo p){
+		MyPoint mp = new MyPoint();
+		mp.userId = p.userId;
+		mp.x = p.longitude;
+		mp.y = p.latitude;
+		mp.label = DateUtil.notSafeSdf.format(p.dateTaken);
+		return mp;
+	}
+	
+	public static List<MyPointWithTime> getPointsWithTime(List<Photo> photos){
+		List<MyPointWithTime> mps=new ArrayList<MyPointWithTime>();
+		for(Photo p: photos){
+			MyPoint mp=new MyPoint();
+			mp.userId=p.userId;
+			mp.x=p.longitude;
+			mp.y=p.latitude;
+			mps.add(new MyPointWithTime(p.dateTaken, mp));
+		}
+		return mps;
+	}
+	
+	/****************************************              毕业论文               ***************************/
 	//从文件中读取照片信息，返回一个列表
 	public static List<Photo> getPhotos(String path){
 		String splitString=",";
 		List<Photo> photos = new ArrayList<Photo>();
 		List<String> lines = FileUtil.getLinesFromFile(path);
-		System.out.println(lines.size());
 		for(int i = 0; i < lines.size(); ++i){
 			String line=lines.get(i);
 			String[] ss=line.split(splitString);
@@ -144,7 +201,7 @@ public class Photo implements Comparable<Photo>
 	//		p.favoriteNum=Integer.parseInt(ss[5]);
 			photos.add(p);
 		}
-		System.out.println("使用读取所有照片函数，照片数量为：" + photos.size());
+		//System.out.println("使用读取所有照片函数，照片数量为：" + photos.size());
 		return photos;
 	}
 	
@@ -174,30 +231,25 @@ public class Photo implements Comparable<Photo>
 		}
 	}
 	
-	//根据照片的id合并照片信息
-	public static void mergePhotoInfo(){
-		List<String> big=FileUtil.getLinesFromFile(Photo.photoBasicInfoPath);
-		List<String> small=FileUtil.getLinesFromFile(Photo.workDir + "pid_favorite.txt");
-		List<String> all=StringUtil.mergeLine(big, small, ",");
-		FileUtil.NewFile(Photo.workDir+"fall.txt", all);
+	public static List<String> getUniqueUsers(List<Photo> photos) {
+		Set<String> users = new HashSet<String>();
+		for(Photo p : photos) {
+			users.add(p.userId);
+		}
+		return new ArrayList<String>(users);
 	}
 	
-	//将照片的图片链接和标签合并
-	public static void mergePhotoImgWithTag(){
-		List<String> imgs=FileUtil.getLinesFromFile(Photo.photoIdImgFile);
-		List<String> tags=FileUtil.getLinesFromFile(Photo.photoIdTagsFile);
-		List<String> out=StringUtil.mergeLine(imgs, tags, ",");
-		FileUtil.NewFile(Photo.photoIdImgTagsFile, out);
+	public static List<Photo> getPhotosWithGeo(List<Photo> photos) {
+		List<Photo> ps = new ArrayList<Photo>();
+		for (Photo p: photos) {
+			if (NumberUtil.isZero(p.latitude) && NumberUtil.isZero(p.longitude)) {
+				continue;
+			}
+			ps.add(p);
+		}
+		return ps;
 	}
-	
-	public static MyPoint getPoint(Photo p){
-		MyPoint mp=new MyPoint();
-		mp.userId=p.userId;
-		mp.x=p.longitude;
-		mp.y=p.latitude;
-		return mp;
-	}
-	
+
 	public static List<MyPoint> getPoints(List<Photo> photos){
 		List<MyPoint> mps=new ArrayList<MyPoint>();
 		for(Photo p: photos){
@@ -206,17 +258,69 @@ public class Photo implements Comparable<Photo>
 		return mps;
 	}
 	
-	public static List<MyPointWithTime> getPointsWithTime(List<Photo> photos){
-		List<MyPointWithTime> mps=new ArrayList<MyPointWithTime>();
-		for(Photo p: photos){
-			MyPoint mp=new MyPoint();
-			mp.userId=p.userId;
-			mp.x=p.longitude;
-			mp.y=p.latitude;
-			mps.add(new MyPointWithTime(p.dateTaken, mp));
+	//使用该方法对单个用户的照片列表进行聚类，得到他的居住地
+	public static MyPoint clusterPhotosAndGetLargestGeo(List<Photo> photos) {
+		GeoFilter.Area area = GeoFilter.areaWorld;
+		List<MyPoint> mps = Photo.getPoints(photos);
+		GeoBlock.setStaticParameter(area);
+		List<GeoBlock> blocks = GeoBlock.getBlockWithReadyParameter(mps);
+		List<MyPoint> cps = GeoBlock.getMyPoints(blocks);
+		
+		double clusterR = area.clusterR;//用来设置局部密度的截断距离
+		int clusterNum = area.clusterNum;//聚类的数量
+		double rate = 0.5;//平均密度比率
+		MyPoint.mpw = new MyPoint.MyPointSelfWeight();//设置开启数据点的权重
+		MyPoint.mpd = new MyPoint.MyPointCoordinateDistance();//使用坐标距离
+		
+		ScienceCluster sc=new ScienceCluster(cps);
+		sc.initCluster(clusterR);
+		//sc.showLocalDensity();
+		sc.cluster(clusterNum, clusterR, rate);
+
+		List<MyPoint> used = new ArrayList<MyPoint>();
+		for(MyPoint mp: cps){
+			if(Integer.parseInt(mp.clusterId)>-1)
+				used.add(mp);
 		}
-		return mps;
+		List<MyPoint> first = sc.clusters.get(1);
+		double x = 0, y = 0, count = 0;
+		for (MyPoint mp : first) {
+			String[] ss = mp.label.split(",");
+			x += Double.parseDouble(ss[0]) * mp.getPointWeight();
+			y += Double.parseDouble(ss[1]) * mp.getPointWeight();
+			count += mp.getPointWeight();
+		}
+		x /= count;
+		y /= count;
+		System.out.println("聚类中心：" + x + "," +y);
+		return new MyPoint(x, y);
+		//System.out.println("聚类后还剩下："+used.size());
+		//KmlFile.writeClusterResult(DateUtil.getTodayMonthDay()+"_" + clusterR + "_" + clusterNum, used);
 	}
+
+	public static List<Photo> selectOne(List<Photo> photos, int num) {
+		List<Photo> ps = new ArrayList<Photo>();
+		for (Photo p: photos) {
+			int rand = NumberUtil.getRandom(num);
+			if (rand == num - 1) {
+				ps.add(p);
+			}
+		}
+		return ps;
+	}
+
+	public static void writePhotoListHeatFile(List<Photo> photos, GeoFilter.Area area, String name) {
+		List<MyPoint> mps = Photo.getPoints(photos);
+		GeoBlock.setStaticParameter(area);
+		List<GeoBlock> blocks = GeoBlock.getBlockWithReadyParameter(mps);
+		List<String> lines = GeoBlock.getPointToBlockWeight(blocks);
+		FileUtil.NewFile(KmlFile.saveFolder + name + ".geoblocks", lines);
+		
+		List<Photo> selected = Photo.selectOne(photos, 100);
+		List<MyPoint> smps = Photo.getPoints(selected);
+		KmlFile.writeMyPoint(name, smps);
+	}
+	 
 	
 	public static void main(String[] args){
 	//	showDateField();

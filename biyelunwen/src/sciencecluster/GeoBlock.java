@@ -81,34 +81,36 @@ public class GeoBlock
 	}
 	
 	public static void setParameter(int row, int column){
-		GeoBlock.HEIGHT = GeoBlock.BOTTOM-GeoBlock.TOP;
+		GeoBlock.HEIGHT = GeoBlock.BOTTOM - GeoBlock.TOP;
 		GeoBlock.WIDTH = GeoBlock.RIGHT-GeoBlock.LEFT;
 		GeoBlock.ROW_NUM = row;
 		GeoBlock.COLUMN_NUM = column;
 		GeoBlock.ROW_HEIGHT = GeoBlock.HEIGHT/GeoBlock.ROW_NUM;
 		GeoBlock.COLUMN_WIDTH = GeoBlock.WIDTH/GeoBlock.COLUMN_NUM;
-	//	System.out.println("WIDTH:"+GeoBlock.WIDTH+"\tHEIGHT"+GeoBlock.HEIGHT);
-	//	System.out.println("ROW:"+GeoBlock.ROW_NUM+"\tColumn:"+GeoBlock.COLUMN_NUM);
-	//	System.out.println("width:"+GeoBlock.COLUMN_WIDTH+"\theight:"+GeoBlock.ROW_HEIGHT);
+		//System.out.println("WIDTH:"+GeoBlock.WIDTH+"\tHEIGHT"+GeoBlock.HEIGHT);
+		//System.out.println("ROW:"+GeoBlock.ROW_NUM+"\tColumn:"+GeoBlock.COLUMN_NUM);
+		//System.out.println("width:"+GeoBlock.COLUMN_WIDTH+"\theight:"+GeoBlock.ROW_HEIGHT);
 	}
 	
 	public static String getBlockIndex(double x, double y)//x表示横向上的距离(经度)，y表示纵向上的距离（纬度）
 	{
-		double xOffset=x-GeoBlock.LEFT;
-		double yOffset=y-GeoBlock.TOP;//注意，这里减去的是较小的TOP值
+		double xOffset = x-GeoBlock.LEFT;
+		double yOffset=y - GeoBlock.TOP;//注意，这里减去的是较小的TOP值
+		//System.out.println(x + "," + GeoBlock.LEFT + "," + y + "," + GeoBlock.TOP);
+		//System.out.println(COLUMN_WIDTH + "," + ROW_HEIGHT);
 		int xIndex=(int) (xOffset/COLUMN_WIDTH);
-		if(xIndex>=COLUMN_NUM)
-			xIndex=COLUMN_NUM-1;
-		int yIndex=(int) (yOffset/ROW_HEIGHT);
-		if(yIndex>=ROW_NUM)
-			yIndex=ROW_NUM-1;
-		String temp=xIndex+","+yIndex;
+		if(xIndex >= COLUMN_NUM)
+			xIndex = COLUMN_NUM-1;
+		int yIndex = (int) (yOffset / ROW_HEIGHT);
+		if(yIndex >= ROW_NUM)
+			yIndex = ROW_NUM - 1;
+		String temp = xIndex + "," + yIndex;
 		return temp;
 		
 	}
 	
 	//根据数据点来设置栅格的参数
-	public static void setStaticParameter(List<MyPoint> points, int row, int column){
+	public static void setStaticParameter(List<MyPoint> points, int row, int column) {
 		MyPoint first = points.get(0);
 		GeoBlock.LEFT=first.x;
 		GeoBlock.RIGHT=first.x;
@@ -128,13 +130,21 @@ public class GeoBlock
 		GeoBlock.setParameter(row, column);
 	}
 	
+	public static void setStaticParameter(GeoFilter.Area area) {
+		GeoBlock.BOTTOM = area.top;
+		GeoBlock.TOP = area.bottom;
+		GeoBlock.LEFT = area.left;
+		GeoBlock.RIGHT = area.right;
+		GeoBlock.setParameter(area.row, area.column);
+	}
+	
 	//根据数据点以及制定的行数和列数来获得栅格
-	public static List<GeoBlock> getBlock(List<MyPoint> points, int row, int column){			
+	public static List<GeoBlock> getBlock(List<MyPoint> points, int row, int column) {			
 		
 		List<String> tempList = GeoBlock.getBlockIndexes(points, row, column);
 		List<GeoBlock> blocks=new ArrayList<GeoBlock>();
 		
-	/*	Map<String, Integer> blockmap=StringUtil.countFrequency(tempList);//这里是使用计数的方式来统计栅格的权重
+		/*Map<String, Integer> blockmap = StringUtil.countFrequency(tempList);//这里是使用计数的方式来统计栅格的权重
 		System.out.println("共有栅格："+blockmap.size());
 		for(Map.Entry<String, Integer> entry: blockmap.entrySet())
 		{
@@ -144,18 +154,18 @@ public class GeoBlock
 			blocks.add(new GeoBlock(entry));
 		}*/
 		
-		Map<String, Set<String>> blockWeight=new HashMap<String, Set<String>>();
+		Map<String, Set<String>> blockWeight = new HashMap<String, Set<String>>();
 		for(int i = 0; i < points.size(); ++i){
 			MyPoint mp=points.get(i);
-			Set<String> t=blockWeight.get(mp.geoBlockIndexString);
-			if(null==t) {
+			Set<String> t = blockWeight.get(mp.geoBlockIndexString);
+			if(null == t) {
 				t=new HashSet<String>();
 				blockWeight.put(mp.geoBlockIndexString, t);
 			}
 			t.add(mp.userId);
 		}
 		for(Map.Entry<String, Set<String>> entry: blockWeight.entrySet()){
-			GeoBlock tb=new GeoBlock(entry, ",");
+			GeoBlock tb = new GeoBlock(entry, ",");
 			blocks.add(tb);
 		//	System.out.println(tb.weight);
 		}
@@ -163,23 +173,53 @@ public class GeoBlock
 		return blocks;		
 	}
 	
+	public static List<GeoBlock> getBlockWithReadyParameterUserCount(List<MyPoint> points) {			
+		List<String> tempList = GeoBlock.getBlockIndexesWithReadyParameters(points);
+		List<GeoBlock> blocks=new ArrayList<GeoBlock>();
+		
+		Map<String, Set<String>> blockWeight = new HashMap<String, Set<String>>();
+		for(int i = 0; i < points.size(); ++i){
+			MyPoint mp=points.get(i);
+			Set<String> t = blockWeight.get(mp.geoBlockIndexString);
+			if(null == t) {
+				t=new HashSet<String>();
+				blockWeight.put(mp.geoBlockIndexString, t);
+			}
+			t.add(mp.userId);
+		}
+		for(Map.Entry<String, Set<String>> entry: blockWeight.entrySet()){
+			GeoBlock tb = new GeoBlock(entry, ",");
+			blocks.add(tb);
+		//	System.out.println(tb.weight);
+		}
+		System.out.println("删除一些之后："+blocks.size());
+		return blocks;		
+	}
+	
+	public static List<GeoBlock> getBlockWithReadyParameter(List<MyPoint> points) {			
+		
+		List<String> tempList = GeoBlock.getBlockIndexesWithReadyParameters(points);
+		List<GeoBlock> blocks=new ArrayList<GeoBlock>();
+		
+		Map<String, Integer> blockmap=StringUtil.countFrequency(tempList);//这里是使用计数的方式来统计栅格的权重
+		System.out.println("共有栅格："+blockmap.size());
+		for(Map.Entry<String, Integer> entry: blockmap.entrySet())
+		{
+			blocks.add(new GeoBlock(entry));
+		}
+		return blocks;		
+	}
+	
 	public static List<String> getBlockIndexes(List<MyPoint> points, int row, int column){
 		setStaticParameter(points, row, column);
-		
-		List<String> tempList=new ArrayList<String>();
-		for(MyPoint mp: points){
-			String temp=GeoBlock.getBlockIndex(mp.x, mp.y);
-			mp.geoBlockIndexString=temp;
-			tempList.add(temp);
-		}
-		return tempList;
+		return getBlockIndexesWithReadyParameters(points);
 	}
 	
 	public static List<String> getBlockIndexesWithReadyParameters(List<MyPoint> points){
 		List<String> tempList=new ArrayList<String>();
 		for(MyPoint mp: points){
-			String temp=GeoBlock.getBlockIndex(mp.x, mp.y);
-			mp.geoBlockIndexString=temp;
+			String temp = GeoBlock.getBlockIndex(mp.x, mp.y);
+			mp.geoBlockIndexString = temp;
 			tempList.add(temp);
 		}
 		return tempList;
@@ -189,16 +229,32 @@ public class GeoBlock
 		List<MyPoint> cps=new ArrayList<MyPoint>();
 		for(GeoBlock gb: blocks){
 			MyPoint mp=new MyPoint();
-			mp.x=gb.xIndex;
-			mp.y=gb.yIndex;
-			mp.label=gb.xCoordinate+","+gb.yCoordinate;
+			mp.x = gb.xIndex;
+			mp.y = gb.yIndex;
+			mp.label = gb.xCoordinate+","+gb.yCoordinate;
 			mp.setPointWeight(gb.weight);
 			cps.add(mp);
 		}
 		return cps;
 	}
 	
-	//进行测试
+	//根据数据点和行数以及列数获得栅格的权重
+	public static List<String> getPointToBlockWeight(List<MyPoint> mps, int rowNum, int columnNum){
+		List<GeoBlock> blocks = GeoBlock.getBlock(mps, rowNum, columnNum);
+		return getPointToBlockWeight(blocks);
+	}
+	
+	public static List<String> getPointToBlockWeight(List<GeoBlock> blocks) {
+		List<String> lines = new ArrayList<String>();
+		for(GeoBlock gb: blocks){
+			String temp=gb.xIndex+","+gb.yIndex+","+gb.weight;//Math.log(gb.weight);
+		//	System.out.println(temp);
+			lines.add(temp);
+		}
+		return lines;
+	}
+	
+	/********************************             test   *******************************/
 	public static void test1(){
 		List<MyPoint> mps=new ArrayList<MyPoint>();
 		mps.clear();
@@ -208,34 +264,15 @@ public class GeoBlock
 		mps.add(new MyPoint(8, 8, "4"));
 		mps.add(new MyPoint(9, 9, "5"));
 		mps.add(new MyPoint(10, 10, "6"));
-		List<GeoBlock> blocks=GeoBlock.getBlock(mps, 3, 3);
-		for(int i=0; i<blocks.size(); ++i){
+		List<GeoBlock> blocks = GeoBlock.getBlock(mps, 3, 3);
+		for(int i = 0; i<blocks.size(); ++i){
 			System.out.println(blocks.get(i));
 		}
 	}
 	
-	//获得地理块的权重
-	public static void draw3DHeight(){
-		List<MyPoint> mps;
-	//	mps = Photo.getPoints();//北京地区的数据点
-		List<Photo> photos=GeoFilter.getAreaPhotos(GeoFilter.areaGuGongBig);
-		System.out.println("当前选中的照片："+photos.size());
-		mps=Photo.getPoints(photos);
-		List<String> lines = getPointToBlockWeight(mps, 1275, 1062);
-		FileUtil.NewFile("E:/MyProject/VS2010/Network_16_10_17/MyHeatmap/datanolog.txt", lines);
-	}
+	/***************************************               毕业论文            ********************************/
 	
-	//根据数据点和行数以及列数获得栅格的权重
-	public static List<String> getPointToBlockWeight(List<MyPoint> mps, int rowNum, int columnNum){
-		List<GeoBlock> blocks=GeoBlock.getBlock(mps, rowNum, columnNum);
-		List<String> lines=new ArrayList<String>();
-		for(GeoBlock gb: blocks){
-			String temp=gb.xIndex+","+gb.yIndex+","+gb.weight;//Math.log(gb.weight);
-		//	System.out.println(temp);
-			lines.add(temp);
-		}
-		return lines;
-	}
+	
 	
 	public static void main(String[] args)
 	{

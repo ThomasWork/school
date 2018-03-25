@@ -28,38 +28,38 @@ public class GeoTrajectoryCluster
 		for(GeoTrajectory tra: tras){
 			mps.addAll(MyPointWithTime.getMyPointList(tra.points));
 		}
-		return scienceCluster(area, mps);
+		return ScienceCluster(area, mps);
 	}
 	
 	//对轨迹中的所有点进行聚类
 	public static ScienceCluster getUserScienceClusterResult(GeoFilter.Area area, List<User> users){
-		List<MyPoint> mps=new ArrayList<MyPoint>();
-		for(User u: users){
+		List<MyPoint> mps = new ArrayList<MyPoint>();
+		for(User u: users) {
 			mps.addAll(Photo.getPoints(u.photosList));
 		}
-		return scienceCluster(area, mps);
+		return ScienceCluster(area, mps);
 	}
 	
-	private static ScienceCluster scienceCluster(GeoFilter.Area area, List<MyPoint> mps){
-		int row=area.row, column=area.column;
-		List<GeoBlock> blocks=GeoBlock.getBlock(mps, row, column);//这里已经设置数据点对应的栅格下标
-		List<MyPoint> clusterPoints=GeoBlock.getMyPoints(blocks);//待聚类的数据点
+	public static ScienceCluster ScienceCluster(GeoFilter.Area area, List<MyPoint> mps) {
+		GeoBlock.setStaticParameter(area);
+		List<GeoBlock> blocks = GeoBlock.getBlockWithReadyParameterUserCount(mps);
+		List<MyPoint> clusterPoints = GeoBlock.getMyPoints(blocks);//待聚类的数据点
 		
-		double clusterR=area.clusterR;//用来设置局部密度的截断距离
+		double clusterR = area.clusterR;//用来设置局部密度的截断距离
 		int clusterNum=area.clusterNum;//聚类的数量
-		double rate=0.5;//平均密度比率
+		double rate = 0.5;//平均密度比率
 		
 		area.showClusterParameter();
 		
-		MyPoint.mpw=new MyPoint.MyPointSelfWeight();//设置开启数据点的权重
-		MyPoint.mpd=new MyPointCoordinateDistanceWithMax(clusterR*20);//使用带有最大值的坐标距离
+		MyPoint.mpw = new MyPoint.MyPointSelfWeight();//设置开启数据点的权重
+		MyPoint.mpd = new MyPointCoordinateDistanceWithMax(clusterR * 20);//使用带有最大值的坐标距离
 		
 		ScienceCluster sc=new ScienceCluster(clusterPoints);
 		sc.initCluster(clusterR);
 	//	sc.showLocalDensity();
 		sc.cluster(clusterNum, clusterR, rate);
-		List<MyPoint> used=sc.getUsedPoints();
-		System.out.println("聚类后还剩下："+used.size());
+		List<MyPoint> used = sc.getUsedPoints();
+		System.out.println("聚类后还剩下：" + used.size());
 		KmlFile.writeClusterResult("对轨迹中的点进行聚类_"+clusterR+"_"+clusterNum, used);
 		return sc;
 	}

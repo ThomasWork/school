@@ -2,15 +2,21 @@ package entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import draw.KmlFile;
+import sciencecluster.GeoBlock;
+import sciencecluster.MyPoint;
 import trajectory.GeoTrajectory;
 import trajectory.UserGeoTrajectory;
+import entity.filter.GeoFilter;
 import entity.filter.PhotoFilter;
 import entity.filter.TimeFilter;
 import entity.filter.UserFilter;
@@ -248,33 +254,171 @@ public class UserStatistic
 		//	FileUtil.NewFile(WorkSituation.pythonDrawDir+"12-轨迹-切割时间/data.txt", rateMatrix);
 		}
 	
-	public static void testUserFrom(){
-		List<User> users=User.getUsersInfoList();
-		int unknown=0, beijing=0;;
-		for(User u: users){
-			if(u.sourceLocation.equals("unknown"))
-				unknown++;
-			else
-				System.out.println(u.sourceLocation);
-			if(u.isBeijing)
-				beijing++;
+	/*************************************                       毕业论文               ******************************/
+	//选取一些特殊的用户，展示他们拍摄照片的位置在哪里
+	public static void selectUserForLocation() {
+		List<User> us = User.getUsersWithHisPhotoGeo();
+		for (User u: us) {
+			List<Photo> bj = GeoFilter.getPhotosInArea(u.photosList, GeoFilter.areaBeijing);
+			int all = u.photosList.size();
+			if (all > 1000 && bj.size() * 1.0 / all > 0.3) {
+				u.drawRoutes();
+				List<MyPoint> mps = Photo.getPoints(u.photosList);
+				List<GeoBlock> blocks = GeoBlock.getBlock(mps, 1000, 2000);
+				List<String> lines = GeoBlock.getPointToBlockWeight(blocks);
+				List<MyPoint> mps2 = GeoBlock.getMyPoints(blocks);
+				KmlFile.writeMyPoint(u.id + "-" + u.photosList.size(), mps2);
+				FileUtil.NewFile(KmlFile.saveFolder + u.id + ".geoblocks", lines);
+			}
 		}
-		int knownPlace=users.size()-unknown;
-		System.out.println("位置已知的用户数目："+knownPlace+"占比为："+knownPlace*1.0/users.size());
-		System.out.println("北京用户数目："+beijing);
+	}
+	
+	//统计用户带有和不带有GPS信息之间的信息
+	public static void countUserPhotoFrequency() {
+		List<String> total = new ArrayList<String>();
+		List<String> geo = new ArrayList<String>();
+		List<User> users = User.getUsersWithHisAllPhoto2();
+		for (User u: users) {
+			total.add(u.photosList.size() + "");
+			u.photosList = Photo.getPhotosWithGeo(u.photosList);
+			geo.add(u.photosList.size() + "");
+		}
+		FileUtil.NewFile(Photo.userPhotoAllStatistic, total);
+		FileUtil.NewFile(Photo.userPhotoGeoStatistic, geo);
+	}
+	
+	public static void getUserPhotoStatistic() {
+		List<Integer> nums = FileUtil.getIntsFromFile(Photo.userPhotoFromInfoStatistic);//.userPhotoGeoStatistic);//.userPhotoAllStatistic);
+		NumberUtil.getMinMax(nums);
+		Integer sum = 0;
+		for (Integer each : nums) {
+			sum += each;
+		}
+		System.out.println("total1: " + sum);
+		Integer[] thres = {100, 1000, 2000, 3000, 4000, 10000};
+		NumberUtil.countFrequency(nums, thres);
+	}
+	
+	//将所有用户的来源地画成热力图
+	public static void drawUserComHeatMap() {
+		List<String> lines = FileUtil.getLinesFromFile(Photo.userLocations);
+		List<MyPoint> mps = new ArrayList<MyPoint>();
+		for (String line: lines) {
+			String[] ss = line.split(",");
+			MyPoint mp = new MyPoint(Double.parseDouble(ss[1]), Double.parseDouble(ss[2]));
+			mps.add(mp);
+		}
+		KmlFile.writeMyPoint("all-user-locations", mps);
+		
+		GeoFilter.Area area = GeoFilter.areaWorld;
+		area.row = 2000;
+		area.column = 3000;
+		GeoBlock.setStaticParameter(area);
+		List<GeoBlock> blocks = GeoBlock.getBlockWithReadyParameter(mps);
+		lines = GeoBlock.getPointToBlockWeight(blocks);
+		FileUtil.NewFile(KmlFile.saveFolder + "users_heat_map" + ".geoblocks", lines);
 	}
 	
 	
+	public static void compareUserPhotos() {
+		List<Photo> photos = Photo.getPhotosOfBeijing();
+		Map<String, Set<String>> bup = new HashMap<String, Set<String>>();
+		for (Photo p: photos) {
+			if (null == bup.get(p.userId)) {
+				bup.put(p.userId, new HashSet<String>());
+			}
+			bup.get(p.userId).add(p.id);
+		}
+		List<User> users = User.getUsersWithHisPhotoGeo();
+ 		for (User u: users) {
+			int all = GeoFilter.getPhotosInArea(u.photosList, GeoFilter.areaBeijing).size();
+			System.out.println(all + "," + bup.get(u.id).size());
+		}
+	}
+	
+	//统计不同的用户的停留时间的区别
+	public static void countUserStayTime() {
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedBeijingUser);
+		List<Double> nums = new ArrayList<Double>();
+		List<User> users = User.getUsersWithPhotos(photos);
+		for (User u: users) {
+			Collections.sort(u.photosList);
+			if (u.photosList.size() > 1) {
+				double dis = u.getDateDis();
+				nums.add(dis);
+				System.out.println(u.id + "\t\t" + dis);
+			}
+		}
+		Double[] thres = {24.0, 72.0, 168.0, 720.0, 8760.0, 26280.0};
+		NumberUtil.countFrequency(nums, thres);
+	}
+	
+	//将所有用户的相邻拍摄行为的时间差放在一起
+	public static void countAllUserPhotoTakenDistance() {
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedNotBeijingUser);
+		List<Double> nums = new ArrayList<Double>();
+		List<User> users = User.getUsersWithPhotos(photos);
+		int totals = 0;
+		for (User u: users) {
+			if (u.photosList.size() < 2) {
+				totals += 1;
+			}
+			List<Double> dis = u.getSequenceDateDis();
+			nums.addAll(dis);
+		}
+		System.out.println(totals);
+		Double[] thres1 = {0.16666667, 0.5, 1.0, 2.0, 3.0, 4.0, 8.0, 16.0, 24.0, 48.0};
+		//Double[] thres = {1.0/6, 2.0/6, 3.0/6, 4.0/6, 5.0/6, 7.0/6, 8.0/6, 9.0/6};
+		NumberUtil.countFrequency(nums, thres1);
+	}
+	
+	//统计用户排名前几位的切割距离
+	public static void countUserFirstNCutDistance() {
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedNotBeijingUser);
+		List<List<Double>> nums = new ArrayList<List<Double>>();
+		List<User> users = User.getUsersWithPhotos(photos);
+		final int firstN = 4;
+		for (int i = 0; i < firstN; i += 1) {
+			nums.add(new ArrayList<Double>());
+		}
+		int totals = 0;
+		for (User u: users) {
+			if (u.photosList.size() < 2) {
+				totals += 1;
+			}
+			List<Double> dis = u.getSequenceDateDis();
+			Collections.sort(dis);
+			if (dis.size() < firstN) {
+				continue;
+			}
+			if (dis.get(dis.size() - 1) > 2400) {
+				u.drawRoutes();
+			}
+			for (int i = 0; i < firstN; i += 1) {
+				int index = dis.size() - 1 - i;
+				nums.get(i).add(dis.get(index));
+				//System.out.println("first " + i + ", \t" + dis.get(index));
+			}
+		}
+		System.out.println(totals);
+		Double[] thres = {8.0, 16.0, 24.0, 48.0, 72.0, 168.0, 720.0, 8760.0};
+		for (int i = 0; i < firstN; i += 1) {
+			NumberUtil.countFrequency(nums.get(i), thres);
+		}
+	}
 	
 	public static void main(String[] args)
 	{
-	//	countUserUploads();
-//		countEachUserUpload();
-	//	countEachUserStay();
-	//	countUserPhotoBehavior();
-	//	testBeijingAndWaiDiYouke();
-	//	testSplitTimeEffect();
-		testUserFrom();
+		//selectUserForLocation();
+		//compareUserPhotos();
+		//countUserPhotoFrequency();
+		//getUserPhotoStatistic();
+		//drawUserComHeatMap();
+		//countUserStayTime();
+		//countAllUserPhotoTakenDistance();
+		countUserFirstNCutDistance();
+		
+		
 	}
 
 }

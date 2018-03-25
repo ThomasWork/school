@@ -18,7 +18,7 @@ import myutil.fileprocess.FileUtil;
 
 public class KmlFile
 {
-	public static String saveFolder="G:/Flickr/kml/";
+	public static String saveFolder="G:/毕业论文/画图/kml/";
 	
 	public double latitude;
 	public double longitude;
@@ -99,7 +99,7 @@ public class KmlFile
 	}
 	
 	public static void writeKmlFile(List<KmlFile> places, String saveName){
-		String savePath=KmlFile.saveFolder+saveName+".kml";
+		String savePath = KmlFile.saveFolder + saveName + ".kml";
 		String header="<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 				+"\n"+"<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">"
 				+"\n"+"<Document>"
@@ -180,7 +180,7 @@ public class KmlFile
 	}
 	
 	public static void writeMyPoint(String saveName, List<MyPoint> mps){
-		List<KmlFile> kfs=getKmlPointsFromMyPoints(mps);
+		List<KmlFile> kfs = getKmlPointsFromMyPoints(mps);
 		KmlFile.writeKmlFile(kfs, saveName);
 	}
 	
@@ -188,10 +188,10 @@ public class KmlFile
 		List<KmlFile> kfs=new ArrayList<KmlFile>();
 		for(MyPoint p: mps){
 			KmlFile kf=new KmlFile();
-			kf.label=p.label;
-			kf.longitude=p.x;
-			kf.latitude=p.y;
-			kf.description="";
+			kf.label = p.getPointWeight() + "";
+			kf.longitude = p.x;
+			kf.latitude = p.y;
+			kf.description = p.getPointWeight() + "";
 			kfs.add(kf);
 		}
 		return kfs;

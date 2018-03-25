@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Folder>
+	<name>39_42_115_118</name>
+	<open>1</open>
+	<GroundOverlay>
+		<name>39_42_115_118</name>
+		<description><![CDATA[<img src="C://data.pn<img src=""/>g"/>]]></description>
+		<Icon>
+			<href>C:/Users/Admin/Desktop/classic.png</href>
+			<viewBoundScale>0.75</viewBoundScale>
+		</Icon>
+		<LatLonBox>
+			<north>41.6</north>
+			<south>39.4</south>
+			<east>117.4</east>
+			<west>115.7</west>
+		</LatLonBox>
+	</GroundOverlay>
+</Folder>
+</kml>

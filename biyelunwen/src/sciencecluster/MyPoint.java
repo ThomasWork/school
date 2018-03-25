@@ -63,6 +63,10 @@ public class MyPoint
 		this.pointWeight=weight;
 	}
 	
+	public double getPointWeight() {
+		return this.pointWeight;
+	}
+	
 	private void setXYPar(double xPar, double yPar){
 		this.x=xPar;
 		this.y=yPar;
@@ -74,15 +78,35 @@ public class MyPoint
 		return MyPoint.mpd.getPointDistance(this, b);
 	}
 	
+	public String getBox() {
+		double xStart = GeoBlock.LEFT + GeoBlock.COLUMN_WIDTH * x;
+		double yStart = GeoBlock.TOP + GeoBlock.ROW_HEIGHT * y;
+		double xMax = xStart + GeoBlock.COLUMN_WIDTH;
+		double yMax = yStart + GeoBlock.ROW_HEIGHT;
+		return xStart + "," + xMax + "," + yStart + "," + yMax;
+	}
+	
 	@Override
 	public String toString()
 	{
-		String temp="";
-		temp+=this.label+":"+this.x+",\t"+this.y;
+		String temp="label:";
+		temp += this.label + ",\tcordi:"+this.x+",\t"+this.y;
 		if(null==MyPoint.mpw)
-			MyPoint.mpw=new MyPoint.MyPointSelfWeight();
-		temp+=",\t"+MyPoint.mpw.getPointWeight(this);
+			MyPoint.mpw = new MyPoint.MyPointSelfWeight();
+		temp+=",\t"+MyPoint.mpw.getPointWeight(this) + ",\t" + getBox();
 		return temp;
+	}
+	
+	public static MyPoint getAverageValue(List<MyPoint> mps) {
+		double x = 0, y = 0;
+		int count = mps.size();
+		for (MyPoint mp: mps) {
+			x += mp.x;
+			y += mp.y;
+		}
+		x /= count;
+		y /= count;
+		return new MyPoint(x, y);
 	}
 	
 	public static void setUseBlock(){
@@ -129,7 +153,7 @@ public class MyPoint
 	}
 	
 
-	public static class MyPointGPSDistance implements MyPointDistance{
+	public static class MyPointGPSDistance implements MyPointDistance {
 		private static double EARTH_RADIUS = 6378137;//地球半径，单位为米
 		public MyPointGPSDistance(){
 			System.out.println("使用经纬度计算距离");
@@ -199,8 +223,8 @@ public class MyPoint
 		@Override
 		public double getPointDistance(MyPoint a, MyPoint b)
 		{
-			double dx=a.x-b.x;
-			double dy=a.y-b.y;
+			double dx = a.x-b.x;
+			double dy = a.y-b.y;
 			return Math.sqrt(dx*dx+dy*dy);
 		}
 	}

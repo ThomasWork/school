@@ -12,15 +12,18 @@ public class GeoFilter extends PhotoFilter
 //	public static Area areaGuGong=new Area(116.3854198791183, 116.3959208474785, 39.92299482093005, 39.91183241605992);//故宫
 	public static Area areaBeijingLong = new Area("BeijingLong", 115.7, 117.4, 41.6, 39.4);
 	public static Area areaBeijing = new Area("Beijing", 115.406, 117.502, 41.044, 39.434);
-	public static Area areaBeijingNeibu = new Area("BeijingNeibu", 116.1736739010924, 116.6551342922234, 40.12973211355965, 39.78446940833266);
+	public static Area areaBeijingNeibu = new Area("BeijingNeibu", 116.2227033532268, 116.6538594876797, 40.10000945896522, 39.86313944454666);
 	public static Area areaGuGongBig = new Area("GuGongBig", 116.3840, 116.3970, 39.9230, 39.9110);
 	public static Area areaGuGongNeiBu = new Area("GuGongNeiBu", 116.3866, 116.3950, 39.9208, 39.9126);
 	public static Area areaYiHeYuan = new Area("YiHeYuan", 116.2567640662166, 116.278013963262, 40.00338408656999, 39.9802376172739);//颐和园
+	public static Area areaWorld = new Area("world", -180, 180, 90, -90);
 	
 	static{
-		areaBeijing.setClusterParameter(3000, 3000, 3, 20);
-		areaGuGongNeiBu.setClusterParameter(100, 100, 10, 10);
+		areaBeijing.setClusterParameter(3400, 3400, 4, 20);
+		areaBeijingNeibu.setClusterParameter(3400, 3400, 10, 10);
+		areaGuGongNeiBu.setClusterParameter(340, 340, 10, 10);
 		areaYiHeYuan.setClusterParameter(200, 200, 10, 10);
+		areaWorld.setClusterParameter(1000, 2000, 5, 1);//赤道4万公里
 	}
 	
 	public Area area;
@@ -36,7 +39,7 @@ public class GeoFilter extends PhotoFilter
 		return GeoFilter.isPhotoInRect(p, this.area.left, this.area.right, this.area.top, this.area.bottom);
 	}
 	
-	public static class Area{
+	public static class Area {
 		public double left, right, top, bottom;
 		
 		public String name;
@@ -78,12 +81,15 @@ public class GeoFilter extends PhotoFilter
 			MyPoint mp1=new MyPoint(this.left, this.top);//左上角
 			MyPoint mp2=new MyPoint(this.left, this.bottom);//左下角
 			return MyPoint.MyPointGPSDistance.getMyPointDistance(mp1, mp2);
-		} 
+		}
 	}
 	
+	public static boolean isPhotoInArea(Photo p, Area area) {
+		return GeoFilter.isPhotoInRect(p, area.left, area.right, area.top, area.bottom);
+	}
 
 	public static boolean isPhotoInRect(Photo p, double left, double right, double top, double bottom){
-		if(p.longitude>=left && p.longitude<=right && p.latitude>=bottom && p.latitude<=top)
+		if(p.longitude >= left && p.longitude <= right && p.latitude >= bottom && p.latitude <= top)
 			return true;
 		return false;
 	}
