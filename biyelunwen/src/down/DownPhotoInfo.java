@@ -1,6 +1,7 @@
 package down;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,7 +42,7 @@ public class DownPhotoInfo
 	}
 	
 	//使用一个线程下载数据
-	public static void downPhotos(){
+	public static void downPhotos() throws IOException{
 		List<String> ids= FileUtil.getLinesFromFile(Photo.pidPath);
 		System.out.println("需要下载"+ids.size());
 		for(int i = 0; i < ids.size(); i += 1){
@@ -49,7 +50,8 @@ public class DownPhotoInfo
 			System.out.println(i+","+id);
 			String url = base+"?method=" + method + "&api_key=" + apiKey + "&photo_id=" + id;
 			String path = Photo.photoInfoDir + id+".txt";
-			HttpHelper.testAndGetContent(path, url);
+			HttpHelper.downloadFromUrl(url, path);
+//			HttpHelper.testAndGetContent(path, url);
 		}
 	}
 	
@@ -81,6 +83,11 @@ public class DownPhotoInfo
 			info.add(location.attributeValue("latitude"));
 			info.add(location.attributeValue("longitude"));
 			Element dates = photo.element("dates");
+			String unknown = dates.attributeValue("takenunknown");
+			if (unknown.equals("0") == false) {
+				System.out.println(path);
+				return "";
+			}
 			info.add(dates.attributeValue("taken"));
 			} catch (Exception e) {    
 	            //e.printStackTrace();    
@@ -95,7 +102,10 @@ public class DownPhotoInfo
 		List<String> infos = new ArrayList<String>();
 		for (int i = 0; i < ids.size(); i += 1) {
 			String path=Photo.getPhotoInfoFilePath(ids.get(i));
-			infos.add(getPhotoContent(path));
+			String info = getPhotoContent(path);
+			if (info.length() > 0) {
+				infos.add(info);
+			}
 		}
 		FileUtil.NewFile(Photo.photoBasicInfoPath, infos);
 		List<String> uids2 = new ArrayList<String>(uids);
@@ -120,10 +130,10 @@ public class DownPhotoInfo
     }
 	
 	public static void main(String[] args){
-		test1("31370068340");
+	//	test1("31370068340");
 	//	downPhotos();
 	//	downPhotosMultiThreads();
-	//	getAllUserId();
+		getAllUserId();
 		
 		
 	//	test1();

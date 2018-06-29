@@ -28,23 +28,6 @@ import myutil.fileprocess.FileUtil;
 public class UserStatistic
 {
 	public static String statisticFolder="statistics/all/";
-		
-	//统计每个时间段上传了多少照片
-	public static void countUserUploads()
-	{
-		List<User> users=User.getUsersWithPhotos();
-		List<String> total=new ArrayList<String>();
-		for(User u: users)
-		{
-		//	total.addAll(u.getDateString(DateUtil.DateField.year_month));
-			total.addAll(u.getDateString(DateUtil.DateField.hour));
-		}
-		Map<String, Integer> dataMap=StringUtil.countFrequencyWithNumber(total);
-		for(Entry<String, Integer> entry: dataMap.entrySet())
-		{
-			System.out.println(entry.getKey()+","+entry.getValue());
-		}
-	}
 	
 	//统计每个用户上传了多少照片
 	public static void countEachUserUpload(){
@@ -130,12 +113,6 @@ public class UserStatistic
 		FileUtil.NewFile("E:/MyProject/VS2010/Network_16_10_17/DrawTest/bars.txt", out);
 	}
 	
-	public static void countUserPhotoBehavior(){
-		List<User> users=User.getUsersWithPhotos();
-		for(User u: users){
-			u.getUserPhotoTime();
-		}
-	}
 	
 	private static int countNoLocalNum(List<User> users){
 		int total=0;
@@ -180,7 +157,7 @@ public class UserStatistic
 				idMap.put(i, new ArrayList<User>());
 			}
 			for(User u: users){
-				List<GeoTrajectory> tras=UserGeoTrajectory.getTrajectorysFromUser(u, hours[hoursIndex]);
+				List<GeoTrajectory> tras = UserGeoTrajectory.getTrajectorysFromUser(u, hours[hoursIndex]);
 				int size=tras.size();//该用户的轨迹数目
 				if(size>=maxTraNum)
 					size=maxTraNum;
@@ -204,55 +181,6 @@ public class UserStatistic
 	//	FileUtil.NewFile(WorkSituation.pythonDrawDir+"12-轨迹-切割时间/data.txt", userNumMatrix);
 		FileUtil.NewFile(WorkSituation.pythonDrawDir+"12-轨迹-切割时间/data.txt", rateMatrix);
 	}
-	
-	//测试分割时间对不同轨迹用户数量，以及总的轨迹数量的影响，过时
-		public static void testSplitTimeEffect(){
-		//	List<User> users=User.getUsersWithFromPlace();
-		//	List<User> users=UserFilter.getLocalUsersWithSourceLocation();
-			List<User> users=User.getUsersWithPhotos();
-			int totalNoLocalNum=countNoLocalNum(users);
-		//	System.out.println("totalNoLocalNum"+totalNoLocalNum);
-			List<String> userNumMatrix=new ArrayList<String>();
-			List<String> traNumMatrix=new ArrayList<String>();
-			List<String> rateMatrix=new ArrayList<String>();
-			int [] hours={96, 72, 48, 24, 12};
-		//	int [] hours={24};
-			for(int hoursIndex=0; hoursIndex<hours.length; ++hoursIndex){
-				Map<Integer, List<GeoTrajectory>> numMap=new TreeMap<Integer, List<GeoTrajectory>>();//保存轨迹数目为N的用户的所有轨迹
-				Map<Integer, List<User>> idMap=new TreeMap<Integer, List<User>>();
-				int maxTraNum=12;//最多只统计到10的轨迹
-				Integer thres[]=new Integer[maxTraNum];
-				for(int i=0; i<thres.length; ++i)
-					thres[i]=i;
-				for(int i=1; i<=maxTraNum; ++i){
-					numMap.put(i, new ArrayList<GeoTrajectory>());
-					idMap.put(i, new ArrayList<User>());
-				}
-				for(User u: users){
-					List<GeoTrajectory> tras=UserGeoTrajectory.getTrajectorysFromUser(u, hours[hoursIndex]);
-					int size=tras.size();//该用户的轨迹数目
-					if(size>=maxTraNum)
-						size=maxTraNum;
-					numMap.get(size).addAll(tras);
-					idMap.get(size).add(u);
-				}
-				String tempUserNum="", tempTraNum="";
-				for(int traNum=1; traNum<=maxTraNum; ++traNum){//这里不统计尾巴的部分！！！！
-					List<GeoTrajectory> tras=numMap.get(traNum);
-				//	System.out.println(traNum+"\t"+idMap.get(traNum).size()+"\t"+tras.size()+"\t"+GeoTrajectory.countTrasPointsNum(tras));
-					tempUserNum+=idMap.get(traNum).size()+",";
-					tempTraNum+=tras.size()+",";
-				}
-				userNumMatrix.add(tempUserNum);
-				traNumMatrix.add(tempTraNum);
-				rateMatrix.add(countNoLocalRate(idMap, totalNoLocalNum));
-			//	for(int j=0; j<count.length; ++j)
-			//		System.out.println(count[j]);
-			}
-		//	FileUtil.NewFile(WorkSituation.pythonDrawDir+"12-轨迹-切割时间/data.txt", traNumMatrix);
-			FileUtil.NewFile(WorkSituation.pythonDrawDir+"12-轨迹-切割时间/data.txt", userNumMatrix);
-		//	FileUtil.NewFile(WorkSituation.pythonDrawDir+"12-轨迹-切割时间/data.txt", rateMatrix);
-		}
 	
 	/*************************************                       毕业论文               ******************************/
 	//选取一些特殊的用户，展示他们拍摄照片的位置在哪里
@@ -346,16 +274,16 @@ public class UserStatistic
 			if (u.photosList.size() > 1) {
 				double dis = u.getDateDis();
 				nums.add(dis);
-				System.out.println(u.id + "\t\t" + dis);
+				//System.out.println(u.id + "\t\t" + dis);
 			}
 		}
-		Double[] thres = {24.0, 72.0, 168.0, 720.0, 8760.0, 26280.0};
+		Double[] thres = {24.0, 48.0, 72.0, 96.0, 120.0, 144.0, 168.0, 720.0, 8760.0, 26280.0};
 		NumberUtil.countFrequency(nums, thres);
 	}
 	
 	//将所有用户的相邻拍摄行为的时间差放在一起
 	public static void countAllUserPhotoTakenDistance() {
-		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedNotBeijingUser);
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedBeijingUser);
 		List<Double> nums = new ArrayList<Double>();
 		List<User> users = User.getUsersWithPhotos(photos);
 		int totals = 0;
@@ -407,6 +335,23 @@ public class UserStatistic
 		}
 	}
 	
+	//从北京用户和外地游客选择两个比较典型的例子
+	public static void selectUser() {
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedNotBeijingUser);
+		List<User> users = User.getUsersWithPhotos(photos);
+		int count = 1;
+		for (User u: users) {
+			if (u.photosList.size() > 40 && u.photosList.size() < 50) {
+				count += 1;
+				if (count > 5) {
+					break;
+				}
+				Photo.sortPhotos(u.photosList);
+				System.out.println(u);
+			}
+		}
+	}
+	
 	public static void main(String[] args)
 	{
 		//selectUserForLocation();
@@ -414,10 +359,10 @@ public class UserStatistic
 		//countUserPhotoFrequency();
 		//getUserPhotoStatistic();
 		//drawUserComHeatMap();
-		//countUserStayTime();
+		countUserStayTime();
 		//countAllUserPhotoTakenDistance();
-		countUserFirstNCutDistance();
-		
+		//countUserFirstNCutDistance();
+		//selectUser();
 		
 	}
 

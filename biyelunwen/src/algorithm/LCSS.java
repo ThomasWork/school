@@ -44,6 +44,22 @@ public class LCSS
 		return temp;
 	}
 	
+	public static int getMinDis(List<List<Integer>> paths) {
+		double min = 999999;
+		int index = -1;
+		for (int i = 0; i < paths.size(); i += 1) {
+			double sum = 0;
+			for (int j = 0; j < paths.size(); j += 1) {
+				sum += getDistance(paths.get(i), paths.get(j));
+			}
+			if (sum < min) {
+				min = sum;
+				index = i;
+			}
+		}
+		return index;
+	}
+	
 	public static int[] getArray(List<Integer> l){
 		int[] temp=new int[l.size()];
 		for(int i=0; i<l.size(); ++i)

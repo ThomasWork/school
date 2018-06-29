@@ -18,7 +18,7 @@ import myutil.fileprocess.FileUtil;
 
 public class KmlFile
 {
-	public static String saveFolder="G:/毕业论文/画图/kml/";
+	public static String saveFolder="G:/毕业论文/画图/kml/tmp/";
 	
 	public double latitude;
 	public double longitude;
@@ -182,6 +182,13 @@ public class KmlFile
 	public static void writeMyPoint(String saveName, List<MyPoint> mps){
 		List<KmlFile> kfs = getKmlPointsFromMyPoints(mps);
 		KmlFile.writeKmlFile(kfs, saveName);
+	}
+	
+	public static void writeKmlPath(String saveName, List<MyPoint> mps) {
+		List<KmlFile> kfs = getKmlPointsFromMyPoints(mps);
+		List<List<KmlFile>> kfs2 = new ArrayList<List<KmlFile>>();
+		kfs2.add(kfs);
+		writeKmlPath(kfs2, saveName);
 	}
 	
 	public static List<KmlFile> getKmlPointsFromMyPoints(List<MyPoint> mps){

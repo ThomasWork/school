@@ -16,6 +16,7 @@ public class NumberUtil
 	public static DecimalFormat df=new DecimalFormat("0.00");
 	public static DecimalFormat dfint=new DecimalFormat("0");
 	public static DecimalFormat df4=new DecimalFormat("0.0000"); 
+	public static DecimalFormat df5=new DecimalFormat("0.00000"); 
 	public static Random random=new Random();
 	
 	

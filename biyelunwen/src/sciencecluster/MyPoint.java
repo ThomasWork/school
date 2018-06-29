@@ -215,7 +215,7 @@ public class MyPoint
 		}		
 	}
 
-	public static class MyPointCoordinateDistance implements MyPointDistance{
+	public static class MyPointCoordinateDistance implements MyPointDistance {
 	
 		public MyPointCoordinateDistance(){
 			System.out.println("使用坐标距离！");

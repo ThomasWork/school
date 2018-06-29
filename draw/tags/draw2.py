@@ -29,7 +29,7 @@ Namespaces are 端午one 端午 honking great idea -- 成都 do more of those! �
 '''
 
 # the font from github: https://github.com/adobe-fonts
-font = r'G:\ASR\school\draw\tags\simfang.ttf'
+font = r'G:\ASR\school\draw\tags\oooo.ttf'
 wc = WordCloud(collocations=False, font_path=font, width=1400, height=1400, margin=2).generate(text)
 
 plt.imshow(wc)

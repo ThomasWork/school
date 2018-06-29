@@ -14,6 +14,9 @@ public class GeoFilter extends PhotoFilter
 	public static Area areaBeijing = new Area("Beijing", 115.406, 117.502, 41.044, 39.434);
 	public static Area areaBeijingNeibu = new Area("BeijingNeibu", 116.2227033532268, 116.6538594876797, 40.10000945896522, 39.86313944454666);
 	public static Area areaGuGongBig = new Area("GuGongBig", 116.3840, 116.3970, 39.9230, 39.9110);
+	public static Area areaNiaoChao = new Area("niaochao", 116.3801388389561, 116.3947556233109, 39.99798518022097, 39.98505822970449);
+	public static Area areaMuTianYu = new Area("mutianyu", 116.5365516972905, 116.569269507623, 40.44045020263347, 40.41397755548217);
+	public static Area areaBaDaLing = new Area("badaling", 115.997543670685, 116.0204482301676, 40.36325405004737, 40.34685894125076);
 	public static Area areaGuGongNeiBu = new Area("GuGongNeiBu", 116.3866, 116.3950, 39.9208, 39.9126);
 	public static Area areaYiHeYuan = new Area("YiHeYuan", 116.2567640662166, 116.278013963262, 40.00338408656999, 39.9802376172739);//颐和园
 	public static Area areaWorld = new Area("world", -180, 180, 90, -90);
@@ -22,6 +25,10 @@ public class GeoFilter extends PhotoFilter
 		areaBeijing.setClusterParameter(3400, 3400, 4, 20);
 		areaBeijingNeibu.setClusterParameter(3400, 3400, 10, 10);
 		areaGuGongNeiBu.setClusterParameter(340, 340, 10, 10);
+		areaGuGongBig.setClusterParameter(200, 200, 10, 10);
+		areaNiaoChao.setClusterParameter(200, 200, 10, 10);
+		areaMuTianYu.setClusterParameter(200, 200, 10, 10);
+		areaBaDaLing.setClusterParameter(200, 200, 10, 10);
 		areaYiHeYuan.setClusterParameter(200, 200, 10, 10);
 		areaWorld.setClusterParameter(1000, 2000, 5, 1);//赤道4万公里
 	}

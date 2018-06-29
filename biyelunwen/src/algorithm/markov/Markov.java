@@ -5,7 +5,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
+import org.jsoup.helper.StringUtil;
+
+import entity.Photo;
 import myutil.fileprocess.FileUtil;
 
 
@@ -28,33 +32,33 @@ public class Markov
 	//注意，这里状态数量
 	public Markov(int statusNumPar, List<StatusChain> chainsPar)
 	{
-		this.statusNumber=statusNumPar;
-		this.chains=chainsPar;
+		this.statusNumber = statusNumPar;
+		this.chains = chainsPar;
 		
-		this.statusNodes=StatusNode.getNodes(StatusChain.indexToStatusMap);
+		this.statusNodes = StatusNode.getNodes(StatusChain.indexToStatusMap);
 		StatusChain.setStatusVisitFrequency(this.chains, this.statusNodes);
 		
-		this.statusTranFrequ=new int[this.statusNumber][this.statusNumber];
-		this.statusTranProb=new double[this.statusNumber][this.statusNumber];
+		this.statusTranFrequ = new int[this.statusNumber][this.statusNumber];
+		this.statusTranProb = new double[this.statusNumber][this.statusNumber];
 		
-		for(int i=0;i<this.statusNumber;i++)
+		for(int i = 0; i < this.statusNumber; i++)
 		{
 			this.statusNodes[i].pointOutFrequency=0;//this.statusNumber;//应该等于这一行的和
 			this.statusNodes[i].pointedFrequency=0;//this.statusNumber;//应该等于这一行的和
 			
-			for(int j=0;j<this.statusNumber;j++)
+			for(int j = 0; j < this.statusNumber; j++)
 				this.statusTranFrequ[i][j]=0;//1;//为了防止0的情况发生，设置为1
 		}
 		
 	//	this.setMarkov();
-		this.setMarkovReverse();
-	//	this.setMarkovOneAfterOther();
+	//	this.setMarkovReverse();
+		this.setMarkovOneAfterOther();
 		Arrays.sort(this.statusNodes);//进行排序，这一步必须放在最后进行
 	}
 	
-	private void setTranMatrix(){
+	private void setTranMatrix() {
 		for(StatusChain sc: this.chains){
-			int size=sc.indexChain.size();
+			int size = sc.indexChain.size();
 			if(0==size)
 				continue;
 			int pre=sc.indexChain.get(0);
@@ -219,6 +223,55 @@ public class Markov
 		return out;
 	}
 	
+	private List<String> getSortedStrings(StatusNode[] nodes) {
+		List<String> ss = new ArrayList<String>();
+		for (int i = 0; i < nodes.length; i += 1) {
+			for (int j = 0; j < nodes.length; j += 1) {
+				if (nodes[j].index == i) {
+					ss.add(nodes[j].name);
+				}
+			}
+		}
+		return ss;
+	}
+	
+	private String getMatrixString(double min) {
+		System.out.println("not          ttttttttttttttttttttttttttttt        reverse");
+		int num = this.statusNodes.length;
+		String out = "from,to,rate\n";
+		for(int i = 0; i < num; i++)
+		{
+			for(int j=0; j< num; j++)
+			{
+				int row = this.statusNodes[i].index;
+				int column = this.statusNodes[j].index;
+				double prob = this.statusTranProb[row][column];
+				if (prob > min)
+				out += this.statusNodes[i].name + "," + this.statusNodes[j].name + "," + prob + "\n";
+			}
+		}
+		return out;
+	}
+	
+	private String getMatrixStringReverse(double min) {
+		System.out.println("reverserrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
+		int num = this.statusNodes.length;
+		String out = "to,from,rate\n";
+		for(int i = 0; i < num; i++)
+		{
+			for(int j=0; j< num; j++)
+			{
+				int column = this.statusNodes[i].index;
+				int row = this.statusNodes[j].index;
+				double rate = this.statusTranProb[row][column];
+				if (rate > min) {
+					out += this.statusNodes[i].name + "," + this.statusNodes[j].name + "," + rate + "\n";
+				}
+			}
+		}
+		return out;
+	}
+	
 	@Override
 	public String toString()
 	{
@@ -235,21 +288,40 @@ public class Markov
 			out+="\n";
 		}
 		out+="\n状态转移概率矩阵：\n";
-		out+=this.getMatrixString(this.statusTranProb);
+		//List<String> order = Arrays.asList("三里屯", "后海", "雍和宫", "故宫", "天安门广场", "798艺术区", "鸟巢", "颐和园", "国际机场", "世贸天阶");
+		//out += this.getMatrixString(this.statusTranProb);
 		
-		StatusNode.showNodes(this.statusNodes, this.statusNodes.length);
+		/*for (StatusNode sn: this.statusNodes) {
+			System.out.println(sn);
+		}*/
+		//StatusNode.showNodes(this.statusNodes, this.statusNodes.length);
 		
 		return out;
 	}
 	
-	public static void main(String[] args){
+	public static void test1() {
 		String dataFile="./src/algorithm/markov/data.txt";
-		List<StatusChain> chains=StatusChain.getReadyChainFromFile(dataFile);
+		List<StatusChain> chains = StatusChain.getReadyChainFromFile(dataFile);
 		for(StatusChain sc: chains){
-			System.out.println(sc);
+			//System.out.println(sc);
 		}
-		Markov mk=new Markov(StatusChain.statusNumber, chains);
+		Markov mk = new Markov(StatusChain.statusNumber, chains);
+		//System.out.println(mk);
+	}
+	
+	public static void countPlaces() {
+		List<StatusChain> chains = StatusChain.getReadyChainFromFile(Photo.userTravelPlaces);
+		for(StatusChain sc: chains){
+			//System.out.println(sc);
+		}
+		Markov mk = new Markov(StatusChain.statusNumber, chains);
 		System.out.println(mk);
+		System.out.println(mk.getMatrixString(0.6));
+		//System.out.println(mk.getMatrixStringReverse(0.1));
+	}
+	
+	public static void main(String[] args) {
+		countPlaces();
 	}
 
 }

@@ -36,7 +36,8 @@ public class StatusNode implements Comparable<StatusNode>
 		for(int i=0; i<pm.length; ++i)
 			this.pointOutRate[i]=pm[i];
 		
-		this.topNProbIndex=SortValue.sortReturnIndex(this.pointOutRate);
+		//设置排名靠前的下标
+		this.topNProbIndex = SortValue.sortReturnIndex(this.pointOutRate);
 	}
 	
 	public void setPointedRate(double[][] tranProb){
@@ -47,6 +48,7 @@ public class StatusNode implements Comparable<StatusNode>
 	}
 	
 	public void showTopNProb(int[] sortedIndex, double[] rate, int n){
+		//System.out.println(rate);
 		StringBuilder[] sbs =new StringBuilder[n];
 		double sum=0;
 		for(int i=0; i<n; ++i){
@@ -69,8 +71,8 @@ public class StatusNode implements Comparable<StatusNode>
 	@Override
 	public int compareTo(StatusNode other)
 	{
-		Integer t1=this.frequency;
-		Integer t2=other.frequency;
+		Integer t1 = this.frequency;
+		Integer t2 = other.frequency;
 		return t2.compareTo(t1);//降序排序
 	//	return t1.compareTo(t2);
 	}
@@ -79,12 +81,14 @@ public class StatusNode implements Comparable<StatusNode>
 	public String toString(){
 		String temp="";
 		temp=this.index+":"+this.name+"\t"+this.frequency+"\t"+this.pointOutFrequency+"\t"+this.pointedFrequency+"\tfre:";
-		if(null !=this.pointOutRate){
+		if(null != this.pointOutRate){
+			temp += "\tpoint out:";
 			for(int i=0; i<this.pointOutRate.length; ++i)
 				temp+=this.topNProbIndex[i]+",";
 		}
 		temp+="\n";
 		if(null !=this.pointedRate){
+			temp += "\tpointed in:";
 			for(int i=0; i<this.pointedRate.length; ++i)
 				temp+=this.topNProbIndex[i]+",";
 		}
@@ -102,7 +106,8 @@ public class StatusNode implements Comparable<StatusNode>
 	public static void showNodes(StatusNode[] statusNodes, int n){
 		for(StatusNode node: statusNodes){
 		//	System.out.println(node);
-			node.showTopNProb(node.topNProbIndex, node.pointedRate, n);
+			node.showTopNProb(node.topNProbIndex, node.pointOutRate, n);
+			//node.showTopNProb(node.topNProbIndex, node.pointedRate, n);
 		}
 	}
 	

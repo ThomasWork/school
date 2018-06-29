@@ -1,4 +1,5 @@
 package entity;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -10,12 +11,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+
 import sciencecluster.GeoBlock;
 import sciencecluster.MyPoint;
 import trajectory.GeoTrajectory;
+import trajectory.GeoTrajectoryPhoto;
 import trajectory.MyPointWithTime;
 import trajectory.TimeTrajectory;
 import trajectory.UserGeoTrajectory;
+import down.DownUserInfo;
 import down.DownUserPhotos;
 import draw.KmlFile;
 import entity.filter.GeoFilter;
@@ -26,6 +33,7 @@ import myutil.DateUtil;
 import myutil.NumberUtil;
 import myutil.StringUtil;
 import myutil.fileprocess.FileUtil;
+import myutil.net.HttpHelper;
 
 //Ctrl+F11可以执行当前文件
 
@@ -73,7 +81,7 @@ public class User
 	}
 	
 	//更新照片的时间
-	private void updatePhotosTime() {
+	public void updatePhotosTime() {
 		if(this.timeZone<0)
 			return;
 		for(Photo p: this.photosList){
@@ -86,6 +94,23 @@ public class User
 		}
 	}
 	
+	public void updatePhotosTime(Set<String> need) {
+		//if(this.timeZone<0)
+		//	return;
+		for(Photo p: this.photosList){
+			if(this.timeZone == 8) {
+				continue;
+			}
+			System.out.println("时区："+this.timeZone+"时间："+DateUtil.notSafeSdf.format(p.dateTaken));
+			if (need.contains(p.id)) {
+				int zoneDis = - (this.timeZone-User.BeijingTimeZone);//已知区时的时区减去待计算区时的时区，这里取了负数
+				p.dateTaken = DateUtil.dateUpdate(p.dateTaken, DateUtil.DateField.hour, zoneDis);
+				DateUtil.show(p.dateTaken);
+			}
+			
+		}
+	}
+	
 	public void drawSpecificRoutes(GeoFilter.Area area) {
 		this.photosList = GeoFilter.getPhotosInArea(this.photosList, area);
 		this.drawRoutes();
@@ -94,7 +119,18 @@ public class User
 	public void drawRoutes() {
 		Photo.sortPhotos(this.photosList);//进行排序
 		List<MyPoint> mps = Photo.getPoints(this.photosList);
+		KmlFile.writeKmlPath(this.id + "_" + mps.size(), mps);
+	}
+	
+	public void drawPoints() {
+		List<MyPoint> mps = Photo.getPoints(this.photosList);
 		KmlFile.writeMyPoint(this.id + "_" + mps.size(), mps);
+	}
+	
+	public void drawAllPoints() {
+		List<Photo> photos = Photo.getPhotos(Photo.userMergePhotosGeo + this.id + ".txt");
+		List<MyPoint> mps = Photo.getPoints(photos);
+		KmlFile.writeMyPoint(this.id + "_" + mps.size() + "_" + this.photosList.size(), mps);
 	}
 	
 	public void getLocationByCluster() {
@@ -104,8 +140,76 @@ public class User
 		}
 	}
 	
+	//如果相邻拍摄的照片时间相差比较小，但是位置相差比较大，则认为是错误的照片
+	public void getInvalidEntity() {
+		Photo.sortPhotos(this.photosList);
+		double total = this.photosList.size() - 1;
+		int count = 0;
+		for (int i = 1; i < this.photosList.size(); i += 1) {
+			Photo pre = this.photosList.get(i - 1);
+			Photo cur = this.photosList.get(i);
+			double dis = DateUtil.getDateDisSecond(cur.dateTaken, pre.dateTaken);
+			double geodis = MyPoint.MyPointGPSDistance.getDistance(cur.longitude, cur.latitude, pre.longitude, pre.latitude);
+			if (geodis > 1000 && dis < 60) {
+				count += 1;
+			}
+		}
+		double rate = 0;
+		if (total > 0) {
+			rate = count / total;
+		}
+		if (rate > 0) {
+			System.out.println(this.id + ",\t" + this.photosList.size() + ",\t" + count + ",\t" + rate);
+		}
+	}
+	
+	//部分用户对不同的照片使用相同的坐标！！！
+	public boolean getInvalidEntityBecauseBadGPS() {
+		Photo.sortPhotos(this.photosList);
+		Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+		Map<String, List<Date>> mapd = new HashMap<String, List<Date>>();
+		int baddate = 0;
+		for (int i = 0; i < this.photosList.size(); i += 1) {
+			Photo p = this.photosList.get(i);
+			String temp = p.getGPSString() ;//+ "," + DateUtil.sdfDay.format(p.dateTaken);
+			
+			Set<String> cur = map.get(temp);
+			List<Date> curd = mapd.get(temp);
+			if (null == cur) {
+				cur = new HashSet<String>();
+				map.put(temp, cur);
+			}
+			if (null == curd) {
+				curd = new ArrayList<Date>();
+				mapd.put(temp, curd);
+			}
+			if (curd.size() > 0) {
+				Date last = curd.get(curd.size() - 1);
+				if (DateUtil.getDateDisHour(p.dateTaken, last) > 10 ) {
+					baddate += 1;
+					cur.add("bad:" + DateUtil.sdfDHM.format(p.dateTaken));
+				}
+			} else {
+				curd.add(p.dateTaken);
+			}
+			cur.add(DateUtil.sdfDHM.format(p.dateTaken));
+		}
+		int count = map.size();
+		double total = 0;
+		total= baddate * 1.0 / this.photosList.size();
+		if (total > 0.2) {
+			System.out.println(this.id + ",\t" + this.photosList.size() + ",\t" + count + ",\t" + total);
+			for (Map.Entry<String, Set<String>> entry: map.entrySet()) {
+				System.out.println(entry.getKey() + "," + entry.getValue());
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	
 	public double getDateDis() {
+		Photo.sortPhotos(this.photosList);
 		Photo start = this.photosList.get(0);
 		Photo last = this.photosList.get(this.photosList.size() - 1);
 		return DateUtil.getDateDisHour(last.dateTaken, start.dateTaken);
@@ -134,6 +238,78 @@ public class User
 			output.add(img.getDateString(df));
 		}
 		return output;
+	}
+	
+	public static List<User> parseUserTimeZone(List<User> users) {
+		List<User> newus = new ArrayList<User>();
+		for (User u: users) {
+			String id = u.id;
+			String url = DownUserInfo.getUserInfoUrl(id);
+			//System.out.println(url);
+			String path = DownUserInfo.getUserInfoSavePath(id);
+			String out = HttpHelper.testAndGetContent(path, url);
+			
+			SAXReader saxReader = new SAXReader(); 
+			Document document;
+			try
+			{
+				document = saxReader.read(new File(path));
+				Element rootElement = document.getRootElement();
+				Element person = rootElement.element("person");
+				Element zone = person.element("timezone");
+				if (null == zone) {
+					continue;
+				}
+				String offset = zone.attributeValue("offset");
+				u.timeZone = Integer.parseInt(offset.substring(0, 3));
+				//System.out.println(offset + "," + u.timeZone);
+				newus.add(u);
+			} catch (Exception e1)
+			{
+				System.out.println(e1.toString());
+			}
+		}
+		return newus;
+	}
+	
+	public static void showVisitPlaces(String path, String id) {
+		List<GeoAreaGroup> gaps = GeoAreaGroup.getGeoAreaMap(Photo.photoSelectedAllHotSpots);
+		List<Photo> photos = Photo.getPhotos(path);
+		List<User> users = User.getUsersWithPhotos(photos);
+		List<GeoTrajectoryPhoto> splits = new ArrayList<GeoTrajectoryPhoto>();
+		for (User u: users) {
+			//splits.addAll(getPhotosListFromPhotosListSplitWeek(u));
+			if (u.id.equals(id)) {
+				splits.add(new GeoTrajectoryPhoto(u.id, u, u.photosList));
+			}
+		}
+		Map<String, List<String>> visits = new TreeMap<String, List<String>>();
+		for (GeoTrajectoryPhoto ps: splits) {
+			Photo.sortPhotos(ps.photos);
+			List<String> places = new ArrayList<String>();
+			List<String> tags = new ArrayList<String>();
+			for (int i = 0; i < ps.photos.size(); i += 1) {
+				Photo p = ps.photos.get(i);
+				//System.out.println(p.id + "," + "3_gugong_" + id);
+				for (GeoAreaGroup gap: gaps) {
+					if (gap.contains(p)) {
+						String place = gap.name;
+						System.out.println(p + ",\t" + DateUtil.sdfDHM.format(p.dateTaken) + ":" +place);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
+	public String toString() {
+		String temp = "";//this.id + "\n";
+		Photo.sortPhotos(this.photosList);
+		for (Photo p: this.photosList) {
+			temp += p.toString() + "\n";
+		}
+		return temp;
 	}
 	
 	//首先获得用户的信息，然后把照片添加到用户的照片列表中
@@ -181,20 +357,6 @@ public class User
 		}
 		System.out.println("使用带有位置信息的用户，数量为："+selected.size());
 		return selected;
-	}
-	
-	//获得时间经过矫正的照片
-	private static List<Photo> getPhotosWithCorrectTimeOld(){
-		List<Photo> photos=Photo.getPhotos(Photo.photoBasicInfoPath);
-		List<User> users = User.setPhotoUsersAndGetUsers(photos);
-		photos.clear();
-		for(User u: users){
-		//	u.updatePhotosTime();
-		//	if(u.timeZone>=0)//如果可以矫正，则加入
-		//		photos.addAll(u.photosList);
-		}
-		System.out.println("使用纠正过时间的数据："+photos.size());
-		return photos;
 	}
 	
 	/**************************************************************************************************************************
@@ -326,36 +488,6 @@ public class User
 		FileUtil.NewFile("indexPath.txt", output);
 	}
 	
-	//获取用户每一天的拍照时间
-	public Map<Integer, Map<String, Integer>> getUserPhotoTime(){
-		Map<Integer, List<String>> tempMap=new TreeMap<Integer, List<String>>();
-		for(Photo p: this.photosList){
-			int day=DateUtil.getDateField(p.dateTaken, DateUtil.DateField.year_month_day);
-			int hour=DateUtil.getDateField(p.dateTaken, DateUtil.DateField.hour);
-			List<String> hours=tempMap.get(day);
-			if(null==hours){
-				hours=new ArrayList<String>();
-				tempMap.put(day, hours);
-			}
-			hours.add(hour+"");
-		}
-		
-		Map<Integer, Map<String, Integer>> result=new TreeMap<Integer, Map<String, Integer>>();//LinkedHashMap
-		for(Map.Entry<Integer, List<String>> entry: tempMap.entrySet()){
-		//	System.out.println(entry.getKey()+"\t"+entry.getValue());
-			result.put(entry.getKey(), StringUtil.countFrequencyWithNumber(entry.getValue()));
-		}
-		if(result.size()!=2)//这里只是作为显示的时候方便
-			return result;
-
-		System.out.println(this.id+":"+result.size());
-		for(Map.Entry<Integer, Map<String, Integer>> entry: result.entrySet()){
-			System.out.println(entry.getKey()+"\t");
-			System.out.println(entry.getValue());
-		}
-		return result;
-	}
-	
 	/****************************                   毕业论文                 ***************************************/
 	public static List<String> getUserIds() {
 		List<String> ids = FileUtil.getLinesFromFile(Photo.userBeijingIDs);
@@ -385,7 +517,7 @@ public class User
 		List<User> us = new ArrayList<User>();
 		for (int i = 0; i < ids.size(); i += 1) {
 			if (i % 100 == 0) {
-			System.out.println(i + ", " + ids.get(i));
+				System.out.println(i + ", " + ids.get(i));
 			}
 			String path = DownUserPhotos.getUserGeoPhotoPath(ids.get(i));
 			User u = new User(ids.get(i));
@@ -395,6 +527,7 @@ public class User
 		return us;
 	}
 	
+	//计算所有用户的居住地
 	public static void writeUserLocations() {
 		List<String> locations = new ArrayList<String>();
 		List<User> users = getUsersWithHisPhotoGeo();
@@ -405,6 +538,10 @@ public class User
 			}
 		}
 		FileUtil.NewFile(Photo.userLocations, locations);
+	}
+	
+	public static String getDesc(int a, int b) {
+		return a + "," + b + "," + b * 1.0 / a;
 	}
 	
 	public static void getBeijingUserPhotos() {
@@ -422,8 +559,6 @@ public class User
 				beijingids.add(ss[0]);
 			}
 		}
-		System.out.println("all user ids: " + userIds.size());
-		System.out.println("beijing user ids: " + beijingids.size());
 		
 		List<Photo> ps = Photo.getPhotosOfBeijing();
 		List<Photo> bps = new ArrayList<Photo>();
@@ -439,6 +574,36 @@ public class User
 		}
 		Photo.savePhotos(bps, Photo.photoSelectedBeijingUser);
 		Photo.savePhotos(nbps, Photo.photoSelectedNotBeijingUser);
+		
+
+		System.out.println("all user ids: " + getDesc(userIds.size(),ps.size()));
+		System.out.println("beijing user ids: " + getDesc(beijingids.size(), bps.size()));
+		System.out.println("not beijing:" + getDesc((userIds.size() - beijingids.size()), nbps.size()));
+		
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedNotBeijingUser);
+		List<User> users = User.getUsersWithPhotos(photos);
+		List<Photo> tourists = new ArrayList<Photo>();
+		List<User> tus = new ArrayList<User>();
+		for (User u: users) {
+			if (u.getDateDis() < 168) {
+				tourists.addAll(u.photosList);
+				tus.add(u);
+			}
+		}
+		System.out.println("tourist: " + getDesc(tus.size(), tourists.size()));
+		Photo.savePhotos(tourists, Photo.photoSelectedTourist);
+	}
+	
+	public static void getInvalidUsersBecauseBadGPS() {
+		List<Photo> photos = Photo.getPhotos(Photo.photoSelectedTourist);
+		List<User> users = User.getUsersWithPhotos(photos);
+		int count = 0;
+		for (User u: users) {
+			if( u.getInvalidEntityBecauseBadGPS()) {
+				count += 1;
+			}
+		}
+		System.out.println("bad user count: " + count);
 	}
 	
 	
@@ -446,8 +611,10 @@ public class User
 	{
 		//getUserIds();
 		//getUsersWithHisAllPhoto();
-		getBeijingUserPhotos();
+		//getBeijingUserPhotos();
 		//writeUserLocations();
+		//showVisitPlaces(Photo.photoSelectedTourist, "146885863@N02");
+		getInvalidUsersBecauseBadGPS();
 	}
 
 }

@@ -2,8 +2,11 @@ package myutil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class DateUtil
 {
@@ -102,6 +105,7 @@ public class DateUtil
 		case dayOfMonth:
 			return DateUtil.calendar.get(Calendar.DAY_OF_MONTH);
 		case dayOfWeek:
+			Locale.setDefault(Locale.CHINA);
 			return DateUtil.calendar.get(Calendar.DAY_OF_WEEK);
 		case hour:
 			return DateUtil.calendar.get(Calendar.HOUR_OF_DAY);
@@ -140,6 +144,23 @@ public class DateUtil
 		return DateUtil.calendar.getTime();
 	}
 	
+	public static double getDateDisWeek(Date d1, Date d2){
+		long diff = d1.getTime() - d2.getTime();
+		double days = diff*1.0 / (1000 * 60 * 60 * 24);
+		return days / 7;
+	}
+	
+	public static void testGetDateDisWeek() {
+		Date start = DateUtil.getDate("2009-12-28 00:00:00");
+		List<String> dates = Arrays.asList("2009-12-28 00:00:00", "2009-12-28 00:00:01", "2009-12-29 00:00:00",
+				"2010-01-01 00:00:00", "2010-01-02 00:00:00", "2010-01-03 00:00:00", "2010-01-04 00:00:00", 
+				"2010-01-05 00:00:00", "2010-01-06 00:00:00");
+		for (int i = 0; i < dates.size(); i += 1) {
+			double dis = getDateDisWeek(DateUtil.getDate(dates.get(i)), start);
+			System.out.println(dates.get(i) + "," + (int)dis);
+		}
+	}
+	
 	public static double getDateDisDay(Date d1, Date d2){
 		long diff = d1.getTime() - d2.getTime();
 		double days = diff*1.0 / (1000 * 60 * 60 * 24);
@@ -150,6 +171,12 @@ public class DateUtil
 		long diff = d1.getTime() - d2.getTime();
 		double hours = diff*1.0 / (1000 * 60 * 60 );
 		return hours;
+	}
+	
+	public static double getDateDisMinute(Date d1, Date d2){
+		long diff=d1.getTime()-d2.getTime();
+		double seconds=diff / (1000*60);
+		return seconds;
 	}
 	
 	public static double getDateDisSecond(Date d1, Date d2){
@@ -196,7 +223,15 @@ public class DateUtil
 		System.out.println(sdf.format(d));
 	}
 	
+	public static void testDayOfWeek() {
+		Date cur = new Date();
+		System.out.println(cur);
+		System.out.println(DateUtil.calendar.get(Calendar.DAY_OF_WEEK));
+	}
+	
 	public static void main(String[] args){
-		dateUpdateTest();
+		//dateUpdateTest();
+		//testDayOfWeek();
+		testGetDateDisWeek();
 	}
 }

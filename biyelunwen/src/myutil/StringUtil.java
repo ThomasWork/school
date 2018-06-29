@@ -53,12 +53,12 @@ public class StringUtil
 			else
 				frequency.put(line, count+1);
 		}
-		/*System.out.println("共有：" + frequency.size());
+		System.out.println("共有：" + frequency.size());
 		for(Map.Entry<String, Integer> entry: frequency.entrySet())
 		{
-			System.out.println(entry.getKey()+","+entry.getValue());
+		//	System.out.println(entry.getKey()+","+entry.getValue());
 		//	System.out.println(entry.getValue());
-		}*/
+		}
 		return frequency;
 	}
 	

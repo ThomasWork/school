@@ -35,26 +35,35 @@ public class Photo implements Comparable<Photo>
 	
 	public static String photoIDsDir = workDir + "photo-id-files/";
 	public static String photoInfoDir = workDir + "photo-info-files/";
+	public static String photoExifDir = workDir + "photo-exif-files/";
 	public static String userPhotosDir = workDir + "user-photos-files/";
 	public static String userMergePhotosDir = workDir + "user-photos-merge-files/";
 	public static String userMergePhotosGeo = workDir + "user-photos-merge-geo/";
 	public static String userInfoDir = workDir + "user-info-files/";
+	public static String userProfileDir = workDir + "user-profile-files/";
 	
 	
 	public static String photoFavoriteDir = workDir + "favorite/";
-	public static String photoSizeDir = workDir + "size/";
-	public static String photoContentDir = workDir + "content/";
+	public static String photoSizeDir = workDir + "photo-size/";
+	public static String photoContentDir = workDir + "photo-content/";
 	public static String clusterDir = workDir + "cluster/";
 	
 	public static String pidPath = workDir + "photo_ids.txt";
+	public static String cameraIDPath = workDir + "photo_camera.txt";
 	public static String photoSelectedBasicInfoPath = workDir + "photo_selected_info.txt";
 	public static String photoSelectedBeijingUser = workDir + "photo_selected_beijing_user.txt";
+	public static String photoSelectedTourist = workDir + "photo_selected_tourist.txt";
 	public static String photoSelectedNotBeijingUser = workDir + "photo_selected_not_beijing_user.txt";
 	
 	public static String photoSelectedBeijingHotSpots = workDir + "photo_selected_beijing_hot_spots";
 	public static String photoSelectedNotBeijingHotSpots = workDir + "photo_selected_not_beijing_hot_splots";
 	public static String photoSelectedAllHotSpots = workDir + "photo_selected_all_hot_spots.txt";
 	
+	public static String userTravelPlaces = workDir + "user_travel_places.txt";
+	public static String userTravelPlacesBeijing = workDir + "user_travel_places_beijing.txt";
+	public static String userTravelPlacesLeast2 = workDir + "user_travel_places_least_2.txt";
+	
+	public static String traveRouteDistance = workDir + "travel_route_distance.txt";
 	
 	public static String userBeijingIDs = workDir + "user_beijing_ids.txt";
 	public static String userLocations = workDir + "user_locations.txt";
@@ -90,6 +99,10 @@ public class Photo implements Comparable<Photo>
 	
 	public String getDateString(DateUtil.DateField df){
 		return DateUtil.getDateField(this.dateTaken, df) + "";
+	}
+	
+	public String getGPSString() {
+		return NumberUtil.df5.format(this.latitude) + "," + NumberUtil.df5.format(this.longitude);
 	}
 	
 	public static Map<String, Integer> countDateFields(List<Photo> photos, DateUtil.DateField df){
@@ -210,6 +223,13 @@ public class Photo implements Comparable<Photo>
 		photos = GeoFilter.getPhotosInArea(photos, GeoFilter.areaBeijing);
 		TimeType tf = new TimeFilter.StartEndFilter(DateUtil.getDate("2008-01-01 00:00:00"), DateUtil.getDate("2018-01-01 00:00:00"));
 		photos = TimeFilter.filterPhoto(photos, new TimeFilter(tf));
+		
+		/*List<User> users = User.getUsersWithPhotos(photos);
+		for (User u: users) {
+			u.getInvalidEntity();
+		}*/
+		
+		
 		return photos;
 	}
 	
@@ -219,16 +239,6 @@ public class Photo implements Comparable<Photo>
 			content.add(p.toString());
 		}
 		FileUtil.NewFile(path, content);
-	}
-	
-
-	//得到照片拍摄时间的特定的域
-	public static void showDateField(){
-		List<Photo> photos=Photo.getPhotos(Photo.photoBasicInfoPath);
-		Map<String, Integer> dateC = Photo.countDateFields(photos, DateUtil.DateField.month);
-		for(Map.Entry<String, Integer> entry: dateC.entrySet()){
-			System.out.println(entry.getKey()+","+entry.getValue());
-		}
 	}
 	
 	public static List<String> getUniqueUsers(List<Photo> photos) {
@@ -310,6 +320,7 @@ public class Photo implements Comparable<Photo>
 	}
 
 	public static void writePhotoListHeatFile(List<Photo> photos, GeoFilter.Area area, String name) {
+		photos = GeoFilter.getPhotosInArea(photos, area);
 		List<MyPoint> mps = Photo.getPoints(photos);
 		GeoBlock.setStaticParameter(area);
 		List<GeoBlock> blocks = GeoBlock.getBlockWithReadyParameter(mps);
@@ -324,7 +335,8 @@ public class Photo implements Comparable<Photo>
 	
 	public static void main(String[] args){
 	//	showDateField();
-		mergePhotoInfo();
+	//	mergePhotoInfo();
 	//	mergePhotoImgWithTag();
+		getPhotosOfBeijing();
 	}
 }

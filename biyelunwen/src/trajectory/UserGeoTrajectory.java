@@ -12,8 +12,7 @@ import entity.filter.GeoFilter;
 import entity.filter.UserFilter;
 
 public class UserGeoTrajectory
-{	
-	
+{
 	//从照片列表中获得轨迹，如果隔天则认为是两个轨迹
 	public static List<GeoTrajectory> getTrajectorysFromPhotosListWithNextDay_OLD(String traId, List<Photo> photos){
 		List<GeoTrajectory> tras=new ArrayList<GeoTrajectory>();
@@ -99,12 +98,12 @@ public class UserGeoTrajectory
 			ps[i].longitude=i;
 		}
 		
-		ps[0].dateTaken=DateUtil.getDate("2012-10-1 10:00:00", DateUtil.sdf);
-		ps[1].dateTaken=DateUtil.getDate("2012-10-7 10:00:00", DateUtil.sdf);
-		ps[2].dateTaken=DateUtil.getDate("2012-10-1 10:00:00", DateUtil.sdf);
-		ps[3].dateTaken=DateUtil.getDate("2012-10-2 10:00:00", DateUtil.sdf);
-		ps[4].dateTaken=DateUtil.getDate("2012-10-2 10:00:00", DateUtil.sdf);
-		ps[5].dateTaken=DateUtil.getDate("2012-10-3 11:00:00", DateUtil.sdf);
+		ps[0].dateTaken=DateUtil.getDate("2012-10-1 10:00:00", DateUtil.notSafeSdf);
+		ps[1].dateTaken=DateUtil.getDate("2012-10-7 10:00:00", DateUtil.notSafeSdf);
+		ps[2].dateTaken=DateUtil.getDate("2012-10-1 10:00:00", DateUtil.notSafeSdf);
+		ps[3].dateTaken=DateUtil.getDate("2012-10-2 10:00:00", DateUtil.notSafeSdf);
+		ps[4].dateTaken=DateUtil.getDate("2012-10-2 10:00:00", DateUtil.notSafeSdf);
+		ps[5].dateTaken=DateUtil.getDate("2012-10-3 11:00:00", DateUtil.notSafeSdf);
 		for(int i=0; i<ps.length; ++i){
 			photos.add(ps[i]);
 		}
@@ -176,12 +175,6 @@ public class UserGeoTrajectory
 		GeoTrajectory.writeTrajectoryToFile(tras, traPath);//将轨迹写到文件中
 		KmlFile.writeTrajectories(tras, curArea.name+"_tra");
 		return tras;
-	/*	TrajectoryDistance.currentAlg=ALG.Hausdorff;//下面开始计算距离并写到文件中
-		writeTrajectoryDistance(tras);
-		TrajectoryDistance.currentAlg=ALG.DTW;
-		writeTrajectoryDistance(tras);
-		TrajectoryDistance.currentAlg=ALG.Frechet;
-		writeTrajectoryDistance(tras);*/
 	}
 	
 	//对北京本地人的轨迹中的点进行聚类，观察它们是否和游客经常去的景点一样
